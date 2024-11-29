@@ -1,0 +1,3 @@
+/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/build/CMakeFiles/MonteCarloRaytracer.dir
+/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/build/CMakeFiles/edit_cache.dir
+/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/build/CMakeFiles/rebuild_cache.dir
