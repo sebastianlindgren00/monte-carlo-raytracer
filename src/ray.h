@@ -5,18 +5,18 @@
 class Ray {
 public:
     // Constructor to initialize origin and direction
-    Ray(const glm::vec3& origin, const glm::vec3& direction)
+    Ray(const glm::dvec3& origin, const glm::dvec3& direction)
         : origin(origin), direction(glm::normalize(direction)) {}
 
     // Accessor methods for safety (optional)
-    const glm::vec3& getOrigin() const { return origin; }
-    const glm::vec3& getDirection() const { return direction; }
+    const glm::dvec3& getOrigin() const { return origin; }
+    const glm::dvec3& getDirection() const { return direction; }
 
     // Computes a point along the ray at parameter 't'
-    glm::vec3 at(float t) const {
-        return origin + t * direction;
+    glm::dvec3 at(float t) const {
+        return origin + static_cast<double>(t) * direction;
     }
 
-    glm::vec3 origin;    // Ray origin point
-    glm::vec3 direction; // Normalized ray direction
+    glm::dvec3 origin;    // Ray origin point
+    glm::dvec3 direction; // Normalized ray direction
 };

@@ -8,7 +8,7 @@
 
 class Scene {
 public:
-    Scene() : camera(800, 800), light(glm::vec3(0, 10, 0), glm::vec3(1.0f, 1.0f, 1.0f)) { // example light position and color
+    Scene() : camera(800, 800), light(glm::dvec3(5.0f, 0.0f, 5.0f), glm::dvec3(1.0f, 1.0f, 1.0f)) { // example light position and color
         shapes = ShapeFactory::createShapes();
     }
 
@@ -28,7 +28,7 @@ public:
         }
     }
 
-    glm::vec3 computeReflection(const glm::vec3& rayDir, const glm::vec3& normal) {
+    glm::dvec3 computeReflection(const glm::dvec3& rayDir, const glm::dvec3& normal) {
         return glm::normalize(rayDir - 2.0f * glm::dot(rayDir, normal) * normal);
     }
 
@@ -49,28 +49,38 @@ public:
 
         if (hitShape) {
             // Calculate hit point and normal
-            glm::vec3 hitPoint = ray.origin + t_min * ray.direction;
-            glm::vec3 normal = hitShape->getNormal(hitPoint);
+            glm::dvec3 hitPoint = ray.origin + static_cast<double>(t_min) * ray.direction;
+            glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
             // Diffuse lighting calculation
-            glm::vec3 diffuseColor = light.computeDiffuse(hitPoint, normal);
+            glm::dvec3 diffuseColor = light.computeDiffuse(hitPoint, normal);
             color += ColorDBL(hitShape->color * diffuseColor);
 
-            // Check for reflections if within max depth
+            // Check for reflections if within max depth and reflectivity is greater than 0
             if (depth < maxDepth) {
-                
-                glm::vec3 reflectionDir = computeReflection(ray.direction, normal);
-                Ray reflectionRay(hitPoint + normal, reflectionDir); 
+                // Only compute reflections if the material is reflective
+                float reflectivity = 0.5f; // Use a fixed reflectivity value (can be dynamic)
 
-                // Recursive trace call for reflected ray
-                ColorDBL reflectionColor = trace(reflectionRay, depth + 1);
-                float reflectivity = 0.5f; // Adjust reflectivity as a material property (0.0 to 1.0)
-                glm::vec3 mixedColor = glm::mix(glm::vec3(color.r, color.g, color.b), glm::vec3(reflectionColor.r, reflectionColor.g, reflectionColor.b), reflectivity);
-                color = ColorDBL(mixedColor.r, mixedColor.g, mixedColor.b);
+                if (reflectivity > 0.0f) {
+                    glm::dvec3 reflectionDir = computeReflection(ray.direction, normal);
+                    Ray reflectionRay(hitPoint + normal * 0.001, reflectionDir); // Add small offset to avoid self-intersection
+
+                    // Recursive trace call for reflected ray
+                    ColorDBL reflectionColor = trace(reflectionRay, depth + 1);
+
+                    // Mix reflection with the diffuse color based on reflectivity
+                    glm::dvec3 mixedColor = glm::mix(glm::dvec3(color.r, color.g, color.b), 
+                                                    glm::dvec3(reflectionColor.r, reflectionColor.g, reflectionColor.b), 
+                                                    reflectivity);
+                    color = ColorDBL(mixedColor.r, mixedColor.g, mixedColor.b);
+                }
             }
         }
+
         return color;
     }
+
+
 
     void saveImage(const std::string& filename) {
         std::ofstream file(filename, std::ios::out | std::ios::binary);
@@ -78,10 +88,10 @@ public:
         file << "P6\n" << camera.width << " " << camera.height << "\n255\n";
 
         for (const auto& rgb : pixels) {
-            glm::vec3 color = rgb.toRGB();
-            file.put(static_cast<unsigned char>(glm::clamp(color.r, 0.0f, 255.0f)));
-            file.put(static_cast<unsigned char>(glm::clamp(color.g, 0.0f, 255.0f)));
-            file.put(static_cast<unsigned char>(glm::clamp(color.b, 0.0f, 255.0f)));
+            glm::dvec3 color = rgb.toRGB();
+            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.r), 0.0f, 255.0f)));
+            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.g), 0.0f, 255.0f)));
+            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.b), 0.0f, 255.0f)));
         }
         file.close();
     }
@@ -96,7 +106,7 @@ private:
 int main () {
     Scene scene;
     scene.render();
-    scene.saveImage("/monte-carlo-raytracer/src/image/result.ppm");
+    scene.saveImage("/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/src/image/result.ppm");
     std::cout << "Image saved" << std::endl;
     return 0;
 }
