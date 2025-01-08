@@ -1,0 +1,14 @@
+# Ignore build files
+/build/
+/bin/
+/obj/
+/out/
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+*.lib
+*.pdb
+*.log

@@ -5,10 +5,12 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <random>
+#include <corecrt_math_defines.h>
 
 class Scene {
 public:
-    Scene() : camera(800, 800), light(glm::dvec3(5.0f, 0.0f, 5.0f), glm::dvec3(1.0f, 1.0f, 1.0f)) { // example light position and color
+    Scene() : camera(800, 800), areaLight(glm::dvec3(5.0f, 0.0f, 5.0f), glm::dvec3(1.0f, 1.0f, 1.0f)) { // example light position and color
         shapes = ShapeFactory::createShapes();
     }
 
@@ -19,8 +21,8 @@ public:
     }
 
     void render() {
-        for (int i = 0; i < camera.height; i++) {
-            for (int j = 0; j < camera.width; j++) {
+        for (int j = 0; j < camera.height; j++) {
+            for (int i = 0; i < camera.width; i++) {
                 Ray ray = camera.getRay(i, j);
                 ColorDBL color = trace(ray); // Return ColorDBL
                 pixels.push_back(color); // Cache result for saving
@@ -31,11 +33,26 @@ public:
     glm::dvec3 computeReflection(const glm::dvec3& rayDir, const glm::dvec3& normal) {
         return glm::normalize(rayDir - 2.0f * glm::dot(rayDir, normal) * normal);
     }
+    float random_float() {
+        static std::uniform_real_distribution<float> distribution(0.0, 1.0);
+        static std::mt19937 generator;
+        return distribution(generator);
+    }
+
+    glm::dvec3 RandomHemisphereDirection(const glm::dvec3& normal) {
+        float phi = 2.0f * M_PI * random_float();
+        float cos_theta = sqrt(1.0f - random_float());
+        float sin_theta = sqrt(random_float());
+        glm::dvec3 randomDir(sin_theta * cos(phi), sin_theta * sin(phi), cos_theta);
+
+        // Adjust the random direction to be in the hemisphere around the normal
+        return glm::normalize(randomDir + normal);
+    }
+
 
     ColorDBL trace(const Ray& ray, int depth = 0) {
-        const int maxDepth = 2; // Set a maximum bounce limit
-        ColorDBL color = ColorDBL(0, 0, 0); // Background color
-        float t_min = 1e10f;                  // Large initial value for nearest intersection
+        ColorDBL color = ColorDBL(0, 0, 0); // black for background
+        float t_min = 1e10f;
         Shape* hitShape = nullptr;
 
         // Find the nearest intersection
@@ -53,33 +70,28 @@ public:
             glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
             // Diffuse lighting calculation
-            glm::dvec3 diffuseColor = light.computeDiffuse(hitPoint, normal);
+            glm::dvec3 diffuseColor = areaLight.computeDiffuse(hitPoint, normal);
             color += ColorDBL(hitShape->color * diffuseColor);
 
-            // Check for reflections if within max depth and reflectivity is greater than 0
-            if (depth < maxDepth) {
-                // Only compute reflections if the material is reflective
-                float reflectivity = 0.5f; // Use a fixed reflectivity value (can be dynamic)
-
-                if (reflectivity > 0.0f) {
-                    glm::dvec3 reflectionDir = computeReflection(ray.direction, normal);
-                    Ray reflectionRay(hitPoint + normal * 0.001, reflectionDir); // Add small offset to avoid self-intersection
-
-                    // Recursive trace call for reflected ray
-                    ColorDBL reflectionColor = trace(reflectionRay, depth + 1);
-
-                    // Mix reflection with the diffuse color based on reflectivity
-                    glm::dvec3 mixedColor = glm::mix(glm::dvec3(color.r, color.g, color.b), 
-                                                    glm::dvec3(reflectionColor.r, reflectionColor.g, reflectionColor.b), 
-                                                    reflectivity);
-                    color = ColorDBL(mixedColor.r, mixedColor.g, mixedColor.b);
+            if (hitShape->type == "DIFFUSE") {
+                // Lambertian termination with a 50% chance of ray continuation
+                float LambertianReflectionProb = 0.5f;  // Could be based on albedo
+                if (random_float() > LambertianReflectionProb) {
+                    return color;  // Terminate the ray if not scattered
                 }
+
+                // Scatter ray randomly in the hemisphere around the normal
+                glm::dvec3 scatteredDirection = RandomHemisphereDirection(normal);
+                Ray scatteredRay(hitPoint + normal * 0.001, scatteredDirection);  // Small offset to avoid self-intersection
+
+                // Recursive trace call for scattered ray
+                ColorDBL scatteredColor = trace(scatteredRay, depth + 1);
+                return scatteredColor;  // Return the scattered color
             }
         }
 
         return color;
     }
-
 
 
     void saveImage(const std::string& filename) {
@@ -100,13 +112,18 @@ private:
     Camera camera;
     std::vector<Shape*> shapes;
     std::vector<ColorDBL> pixels;
-    Light light;
+    AreaLight areaLight;
 };
 
 int main () {
     Scene scene;
     scene.render();
-    scene.saveImage("/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/src/image/result.ppm");
-    std::cout << "Image saved" << std::endl;
+
+    const std::string filePath = "E:/Git/monte-carlo-raytracer/src/image/result.ppm";
+    scene.saveImage(filePath);
+    std::cout << "Image saved to " << filePath << std::endl;
+
+    system(("code " + filePath).c_str());
+
     return 0;
 }

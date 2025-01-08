@@ -21,8 +21,8 @@ public:
 
 class AreaLight : public Light {
 public:
-    AreaLight(const glm::dvec3& position, const glm::dvec3& color, const glm::dvec3& normal, float width, float height)
-        : Light(position, color), normal(normal), width(width), height(height) {}
+    AreaLight(const glm::dvec3& position, const glm::dvec3& color)
+        : Light(position, color), normal(normal) {}
 
     // Diffuse lighting calculation
     glm::dvec3 computeDiffuse(const glm::dvec3& hitPoint, const glm::dvec3& normal) {
@@ -33,7 +33,5 @@ public:
 
 
     glm::dvec3 normal;
-    float width;
-    float height;
 };
 
