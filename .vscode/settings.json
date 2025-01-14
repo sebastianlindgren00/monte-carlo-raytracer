@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.ppm": "ppm",
         "vector": "cpp",
         "__node_handle": "cpp",
         "__bit_reference": "cpp",
@@ -55,6 +56,30 @@
         "unordered_map": "cpp",
         "variant": "cpp",
         "algorithm": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "format": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "list": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "xfacet": "cpp",
+        "xhash": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xlocbuf": "cpp",
+        "xlocinfo": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp",
+        "xmemory": "cpp",
+        "xtr1common": "cpp",
+        "xutility": "cpp"
     }
 }

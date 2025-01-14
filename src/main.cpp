@@ -11,6 +11,7 @@ class Scene {
 public:
     Scene() : camera(800, 800), light(glm::dvec3(5.0, 1.5, 4.90), glm::dvec3(5.0, -1.5, 4.90), glm::dvec3(8.0, 1.5, 4.90), glm::dvec3(8.0, -1.5, 4.90)) { // example light position and color
         shapes = ShapeFactory::createShapes();
+        shapes.push_back(light.getLightShape());
     }
 
     ~Scene() {
@@ -18,7 +19,7 @@ public:
             delete shape;
         }
     }
-
+    // byt till parallell for (kör multi core, 800% increase :O)
     void render() {
         for (int j = 0; j < camera.height; j++) {
             for (int i = 0; i < camera.width; i++) {
@@ -29,23 +30,15 @@ public:
         }
     }
 
-    glm::dvec3 computeReflection(const glm::dvec3& rayDir, const glm::dvec3& normal) {
-        return glm::normalize(rayDir - 2.0f * glm::dot(rayDir, normal) * normal);
-    }
-    float random_float() {
-        static std::uniform_real_distribution<float> distribution(0.0, 1.0);
-        static std::mt19937 generator;
-        return distribution(generator);
-    }
-
     ColorDBL trace(const Ray& ray, int depth = 0) {
-        ColorDBL color = ColorDBL(0, 0, 0); // black for background
-        float t_min = std::numeric_limits<float>::max();
+        ColorDBL color = ColorDBL(0, 0, 0); 
+        double t_min = std::numeric_limits<double>::max();
         Shape* hitShape = nullptr;
 
         // Find the nearest intersection
         for (Shape* shape : shapes) {
-            float t = shape->intersect(ray);
+            double t = shape->intersect(ray);
+            //std::cout << shape->getMaterial().color << std::endl;
             if (t > 0.0 && t < t_min) {
                 t_min = t;
                 hitShape = shape;
@@ -55,27 +48,25 @@ public:
         if (hitShape) {
             // Calculate hit point and normal
             glm::dvec3 hitPoint = ray.origin + static_cast<double>(t_min) * ray.direction;
-            glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
             // Diffuse lighting calculation
-            glm::dvec3 diffuseColor = light.computeDiffuse(hitPoint, normal);
-            color += ColorDBL(hitShape->color * diffuseColor);
+            ColorDBL diffuseColor = light.computeDiffuse(hitPoint, hitShape);
+            color += diffuseColor;
         }
-
+        //std::cout << color << std::endl;
         return color;
     }
 
 
     void saveImage(const std::string& filename) {
-        std::ofstream file(filename, std::ios::out | std::ios::binary);
+        std::ofstream file(filename, std::ios::binary);
 
         file << "P6\n" << camera.width << " " << camera.height << "\n255\n";
-
         for (const auto& rgb : pixels) {
             glm::dvec3 color = rgb.toRGB();
-            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.r), 0.0f, 255.0f)));
-            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.g), 0.0f, 255.0f)));
-            file.put(static_cast<unsigned char>(glm::clamp(static_cast<float>(color.b), 0.0f, 255.0f)));
+            file.put(static_cast<unsigned char>(glm::clamp((color.r), 0.0, 255.0)));
+            file.put(static_cast<unsigned char>(glm::clamp((color.g), 0.0, 255.0)));
+            file.put(static_cast<unsigned char>(glm::clamp((color.b), 0.0, 255.0)));
         }
         file.close();
     }
@@ -91,7 +82,7 @@ int main () {
     Scene scene;
     scene.render();
 
-    const std::string filePath = "/Users/sebastianlindgren/Documents/GitHub/monte-carlo-raytracer/src/image/result.ppm";
+    const std::string filePath = "E:/Git/monte-carlo-raytracer/src/image/result.ppm";
     scene.saveImage(filePath);
     std::cout << "Image saved to " << filePath << std::endl;
 
