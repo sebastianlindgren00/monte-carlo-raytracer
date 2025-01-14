@@ -25,5 +25,32 @@ public:
         return *this;
     }
 
+    // Multiply operator*
+    ColorDBL operator*(const ColorDBL& other) const {
+        return ColorDBL(r * other.r, g * other.g, b * other.b);
+    }
+
+    // divide operator/
+    ColorDBL operator/(const ColorDBL& other) const {
+        return ColorDBL(r / other.r, g / other.g, b / other.b);
+    }
+
+    ColorDBL& operator/=(double scalar) {
+        r /= scalar;
+
+        g /= scalar;
+
+        b /= scalar;
+
+        return *this;
+    }
+    friend std::ostream& operator<<(std::ostream& os, const ColorDBL& color) {
+
+        os << "(" << color.r << ", " << color.g << ", " << color.b << ")";
+
+        return os;
+
+    }
+
     float r, g, b;
 };

@@ -15,10 +15,10 @@ public:
     }
 
     Ray getRay(int i, int j) {
-        float u = i * pixelSize - (1.0f - pixelSize); // see lecture 4
-        float v = -(j * pixelSize - (1.0f - pixelSize)); // had to go to -j to flip it 
+        float x = i * pixelSize - (1.0 - pixelSize); // see lecture 4
+        float y = (height - j) * pixelSize - (1.0 - pixelSize); // had to go to -j to flip it 
 
-        glm::dvec3 pixelPosition = glm::dvec3(0.0f, u, v);
+        glm::dvec3 pixelPosition = glm::dvec3(0.0, x, y);
         glm::dvec3 rayDirection = pixelPosition - startPosition;
         return Ray(startPosition, rayDirection);
     }
