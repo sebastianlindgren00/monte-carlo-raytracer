@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include "material.h"
 
 class Scene {
 public:
@@ -30,15 +31,18 @@ public:
         }
     }
 
-    ColorDBL trace(const Ray& ray, int depth = 0) {
-        ColorDBL color = ColorDBL(0, 0, 0); 
+    ColorDBL trace(const Ray& ray, int maxDepth = 5, int samples = 1) {
+        if (ray.depth > maxDepth) {
+            return ColorDBL(0, 0, 0);  // Return black if maximum depth is reached
+        }
+
+        ColorDBL color(0, 0, 0);
         double t_min = std::numeric_limits<double>::max();
         Shape* hitShape = nullptr;
 
         // Find the nearest intersection
         for (Shape* shape : shapes) {
             double t = shape->intersect(ray);
-            //std::cout << shape->getMaterial().color << std::endl;
             if (t > 0.0 && t < t_min) {
                 t_min = t;
                 hitShape = shape;
@@ -46,17 +50,33 @@ public:
         }
 
         if (hitShape) {
-            // Calculate hit point and normal
-            glm::dvec3 hitPoint = ray.origin + static_cast<double>(t_min) * ray.direction;
+            glm::dvec3 hitPoint = ray.pointAtSurface(t_min);
+            glm::dvec3 normal = hitShape->getNormal();
+            auto materialType = hitShape->getMaterial().getMaterialType();
 
-            // Diffuse lighting calculation
-            ColorDBL diffuseColor = light.computeDiffuse(hitPoint, hitShape);
-            color += diffuseColor;
+            switch(materialType){
+
+                case Material::type::LIGHT: {
+                    return hitShape->getMaterial().getColor();
+                }
+
+                case Material::type::DIFFUSE: {
+                    
+                    ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
+                    color += diffuseColor;
+                    return color;
+                }
+
+                case Material::type::MIRROR: {
+                    
+                    glm::dvec3 reflectionDirection = glm::normalize(ray.direction - 2.0 * glm::dot(ray.direction, normal) * normal);
+                    Ray reflectionRay(hitPoint + 0.001 * reflectionDirection, reflectionDirection, ray.depth + 1);
+                    ColorDBL reflectionColor = trace(reflectionRay);
+                }
+            }   
         }
-        //std::cout << color << std::endl;
         return color;
     }
-
 
     void saveImage(const std::string& filename) {
         std::ofstream file(filename, std::ios::binary);
@@ -71,7 +91,7 @@ public:
         file.close();
     }
 
-private:
+public:
     Camera camera;
     std::vector<Shape*> shapes;
     std::vector<ColorDBL> pixels;

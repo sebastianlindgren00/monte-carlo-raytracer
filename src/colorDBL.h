@@ -56,13 +56,6 @@ public:
 
         return *this;
     }
-    friend std::ostream& operator<<(std::ostream& os, const ColorDBL& color) {
-
-        os << "(" << color.r << ", " << color.g << ", " << color.b << ")";
-
-        return os;
-
-    }
 
     double r, g, b;
 };

@@ -1,22 +1,22 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp> // For glm::normalize
+#include <memory> // For std::shared_ptr
+#include "colorDBL.h"
 
 class Ray {
 public:
-    // Constructor to initialize origin and direction
-    Ray(const glm::dvec3& origin, const glm::dvec3& direction)
-        : origin(origin), direction(glm::normalize(direction)) {}
+    
+    Ray(const glm::dvec3& origin, const glm::dvec3& direction, int depth = 0) : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr) {}
 
-    // Accessor methods for safety (optional)
-    const glm::dvec3& getOrigin() const { return origin; }
-    const glm::dvec3& getDirection() const { return direction; }
-
-    // Computes a point along the ray at parameter 't'
-    glm::dvec3 at(float t) const {
-        return origin + static_cast<double>(t) * direction;
+    glm::dvec3 pointAtSurface(double point) const {
+        return origin + point * direction;
     }
 
-    glm::dvec3 origin;    // Ray origin point
-    glm::dvec3 direction; // Normalized ray direction
+    glm::dvec3 origin; 
+    glm::dvec3 direction;
+    std::shared_ptr<Ray> previousRay;
+    std::shared_ptr<Ray> nextRay;
+    ColorDBL color;
+    int depth;
 };

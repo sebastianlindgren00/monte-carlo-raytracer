@@ -22,7 +22,7 @@ public:
         return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     }
 
-    ColorDBL computeDiffuse(const glm::dvec3& hitPoint, const Shape* hitshape) const {
+    ColorDBL computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape) const {
         
         ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
 
@@ -57,6 +57,6 @@ private:
     glm::dvec3 bottomLeft;
     glm::dvec3 bottomRight;
     glm::dvec3 normal;
-    const double WATT = 1000.0; 
+    const double WATT = 100.0; 
     Plane* plane;
 };
