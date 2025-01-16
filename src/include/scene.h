@@ -1,0 +1,27 @@
+#include "include/camera.h"
+#include "include/light.h"
+#include "include/colorDBL.h"
+#include "include/material.h"
+#include "include/ray.h"
+#include "include/shape.h"
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <random>
+
+class Scene {
+public:
+    Scene();
+    ~Scene();
+    
+    void render();// byt till parallell for (kör multi core, 800% increase :O)
+
+    ColorDBL PixelRayColor(Ray* ray, int maxDepth = 5);
+
+    void saveImage(const std::string& filename);
+
+    Camera camera;
+    std::vector<Shape*> shapes;
+    std::vector<ColorDBL> pixels;
+    Light light;
+};
