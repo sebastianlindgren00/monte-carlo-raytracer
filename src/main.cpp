@@ -1,11 +1,14 @@
 #include "include/scene.h"
 #include <fstream>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 int main () {
     Scene scene;
     scene.render();
-
-    const std::string filePath = "E:/Git/monte-carlo-raytracer/src/image/result.ppm";
+    
+    fs::path root = fs::current_path().parent_path().parent_path();
+    const std::string filePath = (root / "result.ppm").string();
     scene.saveImage(filePath);
     std::cout << "Image saved to " << filePath << std::endl;
 

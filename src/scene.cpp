@@ -12,15 +12,29 @@ Scene::~Scene() {
 }
 
 void Scene::render() {
+    int totalPixels = camera.width * camera.height;
+    int processedPixels = 0;
+    int progress = 0;
+    std::cout << "Rendering scene: 0%";
+
+    auto updateProgress = [&]() {
+        int newProgress = static_cast<int>((static_cast<double>(processedPixels) / totalPixels) * 100);
+        if (newProgress > progress) {
+            progress = newProgress;
+            std::cout << "\rRendering scene: " << progress << "%" << std::flush;
+        }
+    };
+
     for (int j = 0; j < camera.height; j++) {
         for (int i = 0; i < camera.width; i++) {
             Ray* ray = camera.getRay(i, j);
-            //ColorDBL color = traceRay(ray); // retyurns 1st or last ray
-            ray->traceRay(this, 0);
-            ColorDBL color = PixelRayColor(ray);
-            pixels.push_back(color); 
+            ColorDBL color = PixelRayColor(ray, 5); // Assuming maxDepth is 5
+            pixels.push_back(color);
+            processedPixels++;
+            updateProgress();
         }
     }
+    std::cout << "\nScene rendered successfully.\n";
 }
 
 ColorDBL Scene::PixelRayColor(Ray* ray, int maxDepth) {
@@ -68,11 +82,27 @@ void Scene::saveImage(const std::string& filename) {
     std::ofstream file(filename, std::ios::binary);
 
     file << "P6\n" << camera.width << " " << camera.height << "\n255\n";
+    int totalPixels = camera.width * camera.height;
+    int processedPixels = 0;
+    int progress = 0;
+    std::cout << "Saving image: 0%";
+
+    auto updateProgress = [&]() {
+        int newProgress = static_cast<int>((static_cast<double>(processedPixels) / totalPixels) * 100);
+        if (newProgress > progress) {
+            progress = newProgress;
+            std::cout << "\rSaving image: " << progress << "%" << std::flush;
+        }
+    };
+
     for (const auto& rgb : pixels) {
         glm::dvec3 color = rgb.toRGB();
         file.put(static_cast<unsigned char>(glm::clamp((color.r), 0.0, 255.0)));
         file.put(static_cast<unsigned char>(glm::clamp((color.g), 0.0, 255.0)));
         file.put(static_cast<unsigned char>(glm::clamp((color.b), 0.0, 255.0)));
+        processedPixels++;
+        updateProgress();
     }
     file.close();
+    std::cout << "\nImage saved successfully.\n";
 }
