@@ -3,8 +3,8 @@
 
 #include "include/colorDBL.h"
 #include "include/material.h"
-#include <glm/vec3.hpp>
-#include <glm/geometric.hpp> // For glm::normalize
+#include <glm/glm.hpp>
+#include "include/direction.h"
 #include <memory> // For std::shared_ptr
 
 class Scene;

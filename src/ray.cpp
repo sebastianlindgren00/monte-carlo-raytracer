@@ -34,15 +34,18 @@ void Ray::traceRay(Scene* scene, int depth) {
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
-                // ray dör instantly
+                // ray dies instantly
                 return;
             }
 
             case Material::type::DIFFUSE: {
-                Ray* newRay = new Ray(hitPoint, this->direction, this->depth + 1);
-                newRay->previousRay = this;
-                this->nextRay = newRay;
-                newRay->traceRay(scene, depth + 1);
+                Direction direction = Direction::RandomDirection();
+                glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
+                glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
+
+                this->nextRay = new Ray(hitPoint, worldSystem, this->depth + 1);
+                this->nextRay->previousRay = this;
+                this->nextRay->traceRay(scene, depth + 1);
             }
 
             case Material::type::MIRROR: {
