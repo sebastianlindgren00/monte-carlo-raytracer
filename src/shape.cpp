@@ -66,7 +66,14 @@ double Sphere::intersect(Ray* ray) {
     if (discriminant < 0) {
         return -1;
     }
-    return (-b - sqrt(discriminant)) / (2.0 * a);
+    double t1 = (-b - sqrt(discriminant)) / (2.0 * a);
+    double t2 = (-b + sqrt(discriminant)) / (2.0 * a);
+    if (t1 > 0) {
+        return t1;
+    } else if (t2 > 0) {
+        return t2;
+    }
+    return -1;
 }
 
 glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
