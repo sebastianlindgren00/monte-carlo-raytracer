@@ -16,7 +16,7 @@ public:
     
     void render();// byt till parallell for (kör multi core, 800% increase :O)
 
-    ColorDBL PixelRayColor(Ray* ray, int maxDepth = 5);
+    ColorDBL PixelRayColor(Ray* ray);
 
     void saveImage(const std::string& filename);
 

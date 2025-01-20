@@ -9,15 +9,18 @@
 
 class Scene;
 class Shape;
+class Light;
 
 class Ray {
 public:
     
-    Ray(const glm::dvec3& origin, const glm::dvec3& direction, int depth = 0);
+    Ray(const glm::dvec3& origin, const glm::dvec3& direction);
 
     glm::dvec3 pointAtSurface(double point) const;
 
     void traceRay(Scene* scene, int depth);
+
+    ColorDBL computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape, Light* light) const;
 
     glm::dvec3 origin; 
     glm::dvec3 direction;
@@ -25,6 +28,6 @@ public:
     Ray* nextRay;
     ColorDBL color;
     int depth;
-    const int MAX_DEPTH = 5;
+    const int MAX_DEPTH = 2;
 };
 #endif // RAY_H
