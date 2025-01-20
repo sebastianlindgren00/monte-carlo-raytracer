@@ -30,7 +30,7 @@ void Ray::traceRay(Scene* scene, int depth) {
 
     if (hitShape) {
         glm::dvec3 hitPoint = pointAtSurface(t_min);
-        glm::dvec3 normal = hitShape->getNormal();
+        glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {

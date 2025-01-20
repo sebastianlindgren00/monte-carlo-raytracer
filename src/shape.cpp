@@ -7,7 +7,10 @@ double Shape::intersect(Ray* ray) {
     return -1.0;
 }
 
-glm::dvec3 Shape::getNormal() const {
+glm::dvec3 Shape::getNormal(glm::dvec3 hitPoint) const {
+    return glm::dvec3(0.0, 0.0, 0.0);
+}
+glm::dvec3 Shape::getNormal(glm::dvec3 hitPoint) {
     return glm::dvec3(0.0, 0.0, 0.0);
 }
 
@@ -47,10 +50,14 @@ glm::dvec3 Plane::getNormal() const {
     return normal;
 }
 
+glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) const {
+    return normal;
+}
+
 //Sphere
 Sphere::Sphere(glm::dvec3 center, double radius, Material material) : Shape(material), center(center), radius(radius) {}
 
-double Sphere::intersect(Ray* ray) { 
+double Sphere::intersect(Ray* ray) {
     glm::dvec3 oc = ray->origin - center;
     double a = glm::dot(ray->direction, ray->direction);
     double b = 2.0 * glm::dot(oc, ray->direction);
@@ -62,9 +69,10 @@ double Sphere::intersect(Ray* ray) {
     return (-b - sqrt(discriminant)) / (2.0 * a);
 }
 
-glm::dvec3 Sphere::getNormal() const {
-    // TODO: Implement this function
-    return glm::dvec3(0.0,0.0,0.0);
+glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
+    glm::dvec3 normal = glm::normalize(center - hitPoint);
+    // std::cout << hitPoint.x << "," << h itPoint.y << "," << hitPoint.z << " " << normal.x << "," << normal.y << "," << normal.z << std::endl;
+    return normal;
 }
 
 //Triangle
@@ -96,7 +104,7 @@ double Triangle::intersect(Ray* ray) {
 }
 
 // Compute the normal of the triangle (cross product of two edges)
-glm::dvec3 Triangle::getNormal() const {
+glm::dvec3 Triangle::getNormal(glm::dvec3 hitPoint) const {
     return normal;
 }
 
@@ -124,6 +132,9 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Triangle(glm::dvec3(-3.0, 0.0, -5.0), glm::dvec3(0.0, -6.0, -5.0), glm::dvec3(0, 6.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
     shapes.push_back(new Triangle(glm::dvec3(10, 0, -5.0), glm::dvec3(10, 0, -5.0), glm::dvec3(0, 0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
     shapes.push_back(new Plane(glm::dvec3(0, 6, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(0, -6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE))); // somehow roof, but it's -5 on z
+
+    // Misc
+    shapes.push_back(new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::DIFFUSE)));
 
     return shapes;
 }

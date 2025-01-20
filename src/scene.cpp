@@ -53,7 +53,7 @@ ColorDBL Scene::PixelRayColor(Ray* ray, int maxDepth) {
 
     if (hitShape) {
         glm::dvec3 hitPoint = ray->pointAtSurface(t_min);
-        glm::dvec3 normal = hitShape->getNormal();
+        glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
