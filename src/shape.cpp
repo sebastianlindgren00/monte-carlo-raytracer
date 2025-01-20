@@ -16,7 +16,11 @@ Material Shape::getMaterial() const {
 }
 
 //Plane
-Plane::Plane(glm::dvec3 topLeft, glm::dvec3 topRight, glm::dvec3 bottomLeft, glm::dvec3 bottomRight, Material material) : Shape(material), bottomLeft(bottomLeft), topLeft(topLeft), bottomRight(bottomRight), topRight(topRight), normal(glm::normalize(glm::cross(bottomRight - bottomLeft, topLeft - bottomLeft))) {}
+Plane::Plane(
+    glm::dvec3 topLeft, glm::dvec3 topRight, glm::dvec3 bottomLeft, glm::dvec3 bottomRight, Material material) : 
+    Shape(material), bottomLeft(bottomLeft), topLeft(topLeft), bottomRight(bottomRight), topRight(topRight), 
+        normal(glm::normalize(glm::cross(bottomRight - bottomLeft, topLeft - bottomLeft))
+) {}
 
 double Plane::intersect(Ray* ray) {
     glm::dvec3 c1 = bottomRight - bottomLeft;
@@ -59,13 +63,19 @@ double Sphere::intersect(Ray* ray) {
 }
 
 glm::dvec3 Sphere::getNormal() const {
+    // TODO: Implement this function
     return glm::dvec3(0.0,0.0,0.0);
 }
 
 //Triangle
-Triangle::Triangle(glm::dvec3 top, glm::dvec3 baseLeft, glm::dvec3 baseRight, Material material) : Shape(material), top(top), baseLeft(baseLeft), baseRight(baseRight), normal(glm::normalize(glm::cross(baseLeft - top, baseRight - top))) {}
+Triangle::Triangle(
+    glm::dvec3 top, glm::dvec3 baseLeft, glm::dvec3 baseRight, Material material) : 
+    Shape(material), top(top), baseLeft(baseLeft), baseRight(baseRight), 
+        normal(glm::normalize(glm::cross(baseLeft - top, baseRight - top))
+) {}
 
 double Triangle::intersect(Ray* ray) {
+    // Möller–Trumbore Intersection Algorithm
     glm::dvec3 D = ray->direction;
     glm::dvec3 edge1 = baseLeft - top;
     glm::dvec3 edge2 = baseRight - top;
@@ -107,8 +117,7 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Plane(glm::dvec3(0, -6, 5), glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
 
     //Floor
-    shapes.push_back(new Triangle(glm::dvec3(0, 0, 5), glm::dvec3(10, 0, 5), glm::dvec3(0, 0, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Triangle(glm::dvec3(10, 0, 5), glm::dvec3(10, 0, -5), glm::dvec3(0, 0, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
+    shapes.push_back(new Triangle(glm::dvec3(13, 0, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
     shapes.push_back(new Plane(glm::dvec3(0, 6, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(0, -6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
 
     // Roof
