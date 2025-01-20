@@ -18,7 +18,7 @@ void Ray::traceRay(Scene* scene, int depth) {
     double t_min = std::numeric_limits<double>::max();
     Shape* hitShape = nullptr;
 
-    // Find the nearest intersection
+    // intersection
     for (auto it = scene->shapes.begin(); it != scene->shapes.end(); ++it) {
         Shape* shape = *it;
         double t = shape->intersect(this);
@@ -39,7 +39,7 @@ void Ray::traceRay(Scene* scene, int depth) {
             }
 
             case Material::type::DIFFUSE: {
-                Direction direction = Direction::RandomDirection();
+                Direction direction = Direction::RandomDirectionWithBRDF();
                 glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
                 glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
 
@@ -49,10 +49,10 @@ void Ray::traceRay(Scene* scene, int depth) {
             }
 
             case Material::type::MIRROR: {
-                Ray* newRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)), this->depth + 1);
-                newRay->previousRay = this;
+                this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)), this->depth + 1);
+                this->nextRay->previousRay = this;
                 this->nextRay = this;
-                newRay->traceRay(scene, depth + 1);
+                this->nextRay->traceRay(scene, depth + 1);
             }
         }   
     }

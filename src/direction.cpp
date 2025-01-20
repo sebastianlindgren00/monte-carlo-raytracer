@@ -53,7 +53,7 @@ Direction Direction::CartesianWorldSystemToHemispherical(glm::dvec3 worldSystem)
     return Direction(azimuth, inclination);
 }
 
-Direction Direction::RandomDirection() {
+Direction Direction::RandomDirectionWithBRDF() {
     double r1 = rand() / (double)RAND_MAX;
     double r2 = rand() / (double)RAND_MAX;
     double azimuth = 2 * M_PI * r1;
