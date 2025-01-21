@@ -20,7 +20,7 @@ public:
 
     void traceRay(Scene* scene, int depth);
 
-    ColorDBL computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape, Light* light) const;
+    ColorDBL computeIrradiance(const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const;
 
     glm::dvec3 origin; 
     glm::dvec3 direction;

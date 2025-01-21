@@ -30,7 +30,6 @@ void Ray::traceRay(Scene* scene, int depth) {
     }
 
     if (hitShape) {
-        std::cout << hitShape->getMaterial().getMaterialType() << std::endl;
         glm::dvec3 hitPoint = pointAtSurface(t_min);
         glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
@@ -62,7 +61,7 @@ void Ray::traceRay(Scene* scene, int depth) {
     }
 }
 
-ColorDBL Ray::computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape, Light* light) const {
+ColorDBL Ray::computeIrradiance(const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const {
     
     ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
 
@@ -73,14 +72,14 @@ ColorDBL Ray::computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshap
 
     double distance = glm::distance(hitPoint, pointOnLight);
     double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
-    double cos_omega_x = glm::clamp(glm::dot(hitshape->getNormal(), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
+    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
     double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
 
     if(cos_omega_y < 0.0) { cos_omega_y = 0.0; }
 
     double G = cos_omega_x * cos_omega_y / (distance * distance);
     double E = area * G * light->WATT / M_PI;
-    ColorDBL color = hitshape->getMaterial().color;
+    ColorDBL color = hitShape->getMaterial().color;
 
     return irradiance += color * E;
 }

@@ -86,7 +86,7 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
                 return color;
             }
             case Material::type::DIFFUSE_TEST: {
-                ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
+                ColorDBL diffuseColor = ray->computeIrradiance(hitPoint, hitShape, &light);
                 color += diffuseColor;
                 return color;
             }
