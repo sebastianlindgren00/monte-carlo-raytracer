@@ -46,11 +46,11 @@ double Plane::intersect(Ray* ray) {
     }
 }
 
-glm::dvec3 Plane::getNormal() const {
+glm::dvec3 Plane::getNormal() {
     return normal;
 }
 
-glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) const {
+glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) {
     return normal;
 }
 
@@ -69,15 +69,17 @@ double Sphere::intersect(Ray* ray) {
     double t1 = (-b - sqrt(discriminant)) / (2.0 * a);
     double t2 = (-b + sqrt(discriminant)) / (2.0 * a);
     if (t1 > 0) {
+        // std::cout << "t1: " << t1 << std::endl;
         return t1;
     } else if (t2 > 0) {
+        // std::cout << "t2: " << t2 << std::endl;
         return t2;
     }
     return -1;
 }
 
 glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
-    glm::dvec3 normal = glm::normalize(center - hitPoint);
+    glm::dvec3 normal = glm::normalize(hitPoint - center);
     // std::cout << hitPoint.x << "," << h itPoint.y << "," << hitPoint.z << " " << normal.x << "," << normal.y << "," << normal.z << std::endl;
     return normal;
 }
@@ -111,7 +113,7 @@ double Triangle::intersect(Ray* ray) {
 }
 
 // Compute the normal of the triangle (cross product of two edges)
-glm::dvec3 Triangle::getNormal(glm::dvec3 hitPoint) const {
+glm::dvec3 Triangle::getNormal(glm::dvec3 hitPoint) {
     return normal;
 }
 
@@ -132,7 +134,7 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Plane(glm::dvec3(0, -6, 5), glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
 
     //Floor
-    shapes.push_back(new Triangle(glm::dvec3(13, 0, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
+    shapes.push_back(new Triangle(glm::dvec3(13, 0, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
     shapes.push_back(new Plane(glm::dvec3(0, 6, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(0, -6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
 
     // Roof

@@ -66,6 +66,11 @@ ColorDBL Scene::PixelRayColor(Ray* ray, int maxDepth) {
                 color += diffuseColor;
                 return color;
             }
+            case Material::type::DIFFUSE_TEST: {
+                ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
+                color += diffuseColor;
+                return color;
+            }
 
             case Material::type::MIRROR: {
                 

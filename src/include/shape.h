@@ -12,9 +12,10 @@ public:
     virtual ~Shape();
     virtual double intersect(Ray* ray);
     
+    glm::dvec3 getNormal();
     glm::dvec3 getNormal() const;
-    virtual glm::dvec3 getNormal(glm::dvec3 hitPoint) const;
     virtual glm::dvec3 getNormal(glm::dvec3 hitPoint);
+    virtual glm::dvec3 getNormal(glm::dvec3 hitPoint) const;
 
     Material getMaterial() const;
 protected:
@@ -27,8 +28,8 @@ class Plane : public Shape {
 
     double intersect(Ray* ray) override;
     
-    glm::dvec3 getNormal() const;
-    glm::dvec3 getNormal(glm::dvec3 hitPoint) const override; 
+    glm::dvec3 getNormal();
+    glm::dvec3 getNormal(glm::dvec3 hitPoint) override; 
 
     glm::dvec3 bottomLeft, topLeft, bottomRight, topRight, normal;
 };
@@ -53,7 +54,7 @@ public:
     double intersect(Ray* ray) override;
 
     // Compute the normal of the triangle (cross product of two edges)
-    glm::dvec3 getNormal(glm::dvec3 hitPoint) const override;
+    glm::dvec3 getNormal(glm::dvec3 hitPoint) override;
     
     glm::dvec3 top, baseLeft, baseRight, normal;
 };

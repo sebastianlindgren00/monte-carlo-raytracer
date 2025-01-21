@@ -29,6 +29,7 @@ void Ray::traceRay(Scene* scene, int depth) {
     }
 
     if (hitShape) {
+        std::cout << hitShape->getMaterial().getMaterialType() << std::endl;
         glm::dvec3 hitPoint = pointAtSurface(t_min);
         glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
