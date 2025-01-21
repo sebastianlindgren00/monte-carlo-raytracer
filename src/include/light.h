@@ -10,14 +10,12 @@ public:
 
     Shape* getLightShape();
 
-    double random_double() const;
+    static double random_double();
 
     ColorDBL computeIrradiance(const glm::dvec3& hitPoint, Shape* hitShape);
     
     std::vector<glm::dvec3> getVertices() const;
     
-    
-private:
     glm::dvec3 topLeft;
     glm::dvec3 topRight;
     glm::dvec3 bottomLeft;

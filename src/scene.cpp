@@ -1,4 +1,5 @@
 #include "include/scene.h"
+#include <ppl.h>
 
 Scene::Scene() : camera(800, 800), light(glm::dvec3(5.0, 1.5, 4.90), glm::dvec3(5.0, -1.5, 4.90), glm::dvec3(8.0, 1.5, 4.90), glm::dvec3(8.0, -1.5, 4.90)) { 
     shapes = ShapeFactory::createShapes();
@@ -13,32 +14,50 @@ Scene::~Scene() {
 
 void Scene::render() {
     int totalPixels = camera.width * camera.height;
-    int processedPixels = 0;
-    int progress = 0;
-    std::cout << "Rendering scene: 0%";
+    std::atomic<int> processedPixels{0};
+    std::atomic<int> progress{0};
+    std::vector<ColorDBL> localPixels(camera.width * camera.height); // Preallocate the size
+
+    std::mutex printMutex;
 
     auto updateProgress = [&]() {
         int newProgress = static_cast<int>((static_cast<double>(processedPixels) / totalPixels) * 100);
         if (newProgress > progress) {
             progress = newProgress;
+            std::lock_guard<std::mutex> lock(printMutex);
             std::cout << "\rRendering scene: " << progress << "%" << std::flush;
         }
     };
 
-    for (int j = 0; j < camera.height; j++) {
+    concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
         for (int i = 0; i < camera.width; i++) {
-            Ray* ray = camera.getRay(i, j);
-            ColorDBL color = PixelRayColor(ray, 5); // Assuming maxDepth is 5
-            pixels.push_back(color);
+            ColorDBL color(0, 0, 0);
+            int samplesPerPixel = 8;
+            for (int s = 0; s < samplesPerPixel; s++) {
+                Ray* ray = camera.getRay(i, j);
+                ray->traceRay(this, 0);
+                color += PixelRayColor(ray);
+                delete ray;
+            }
+            color /= samplesPerPixel;
+            localPixels[j * camera.width + i] = color;
             processedPixels++;
             updateProgress();
         }
-    }
+    });
+
+    // Replace `pixels` with `localPixels` at the end
+    pixels = std::move(localPixels);
+
     std::cout << "\nScene rendered successfully.\n";
 }
 
-ColorDBL Scene::PixelRayColor(Ray* ray, int maxDepth) {
+ColorDBL Scene::PixelRayColor(Ray* ray) {
     ColorDBL color(0, 0, 0);
+    while(ray->nextRay != nullptr){
+        ray = ray->nextRay;
+    }
+
     double t_min = std::numeric_limits<double>::max();
     Shape* hitShape = nullptr;
 
@@ -62,7 +81,7 @@ ColorDBL Scene::PixelRayColor(Ray* ray, int maxDepth) {
 
             case Material::type::DIFFUSE: {
                 
-                ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
+                ColorDBL diffuseColor = ray->computeIrradiance(hitPoint, hitShape, &light);
                 color += diffuseColor;
                 return color;
             }

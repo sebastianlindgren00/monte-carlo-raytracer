@@ -12,37 +12,8 @@ Shape* Light::getLightShape() {
     return plane;
 }
 
-double Light::random_double() const {
+double Light::random_double() {
     return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-}
-
-ColorDBL Light::computeIrradiance(const glm::dvec3& hitPoint, Shape* hitShape) {
-    
-    ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
-
-    double u = random_double();
-    double v = random_double();
-    
-    glm::dvec3 pointOnLight = topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
-
-    double distance = glm::distance(hitPoint, pointOnLight);
-    double area = glm::length(glm::cross(topRight - topLeft, bottomLeft - topLeft));
-    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
-    // if (hitShape->getMaterial().getMaterialType() != Material::type::DIFFUSE_TEST) {
-    //     std::cout << hitShape->getNormal(hitPoint).x << "," << hitShape->getNormal(hitPoint).y << "," << hitShape->getNormal(hitPoint).z << std::endl;
-    // }
-    
-    double cos_omega_y = -1.0 * glm::dot(plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
-
-    if(cos_omega_y < 0.0) { cos_omega_y = 0.0; }
-
-    double G = cos_omega_x * cos_omega_y / (distance * distance);
-    double E = area * G * WATT / M_PI;
-    ColorDBL color = hitShape->getMaterial().color;
-    //std::cout << "Color: " << color << std::endl;
-
-    irradiance += color * E;
-    return irradiance;
 }
 
 std::vector<glm::dvec3> Light::getVertices() const {
