@@ -12,7 +12,9 @@ int main () {
     scene.saveImage(filePath);
     std::cout << "Image saved to " << filePath << std::endl;
 
-    system(("code " + filePath).c_str());
+    // Open the image in Visual Studio Code
+    std::string command = "code \"" + filePath + "\"";
+    system(command.c_str());
 
     return 0;
 }
