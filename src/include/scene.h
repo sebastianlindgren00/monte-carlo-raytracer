@@ -15,6 +15,7 @@ public:
     Scene();
     ~Scene();
     
+    void renderRange(int start, int end);
     void render();// byt till parallell for (kör multi core, 800% increase :O)
 
     ColorDBL PixelRayColor(Ray* ray);

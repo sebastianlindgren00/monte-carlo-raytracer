@@ -1,5 +1,6 @@
 #include "include/scene.h"
-
+#include <thread>
+#include <ppl.h>
 
 Scene::Scene() : camera(800, 800), light(glm::dvec3(5.0, 1.5, 4.90), glm::dvec3(5.0, -1.5, 4.90), glm::dvec3(8.0, 1.5, 4.90), glm::dvec3(8.0, -1.5, 4.90)) { 
     shapes = ShapeFactory::createShapes();
@@ -12,7 +13,24 @@ Scene::~Scene() {
     }
 }
 
+void Scene::renderRange(int start, int end) {
+    for (int j = start; j < end; j++) {
+        for (int i = 0; i < camera.width; i++) {
+            ColorDBL color(0, 0, 0);
+            int samplesPerPixel = 8;
+            for (int s = 0; s < samplesPerPixel; s++) {
+                Ray* ray = camera.getRay(i, j);
+                ray->traceRay(this, 0);
+                color += PixelRayColor(ray);
+                delete ray;
+            }
+            pixels[j * camera.width + i] = color / samplesPerPixel;
+        }
+    }
+}
+
 void Scene::render() {
+
     int totalPixels = camera.width * camera.height;
     std::atomic<int> processedPixels{0};
     std::atomic<int> progress{0};
@@ -29,22 +47,39 @@ void Scene::render() {
         }
     };
 
-    concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
-        for (int i = 0; i < camera.width; i++) {
-            ColorDBL color(0, 0, 0);
-            int samplesPerPixel = 8;
-            for (int s = 0; s < samplesPerPixel; s++) {
-                Ray* ray = camera.getRay(i, j);
-                ray->traceRay(this, 0);
-                color += PixelRayColor(ray);
-                delete ray;
-            }
-            color /= samplesPerPixel;
-            localPixels[j * camera.width + i] = color;
-            processedPixels++;
-            updateProgress();
-        }
-    });
+    int numThreads = std::thread::hardware_concurrency();
+
+    int chunkSize = camera.height / numThreads;
+    std::vector<std::thread> threads;
+
+    // Create threads
+    for (int i = 0; i < numThreads; i++) {
+        int start = i * chunkSize;
+        int end = (i == numThreads - 1) ? camera.height : (i + 1) * chunkSize;
+        threads.push_back(std::thread(&Scene::renderRange, this, start, end));
+    }
+
+    // Join threads
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
+
+    // concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
+    //     for (int i = 0; i < camera.width; i++) {
+    //         ColorDBL color(0, 0, 0);
+    //         int samplesPerPixel = 8;
+    //         for (int s = 0; s < samplesPerPixel; s++) {
+    //             Ray* ray = camera.getRay(i, j);
+    //             ray->traceRay(this, 0);
+    //             color += PixelRayColor(ray);
+    //             delete ray;
+    //         }
+    //         color /= samplesPerPixel;
+    //         localPixels[j * camera.width + i] = color;
+    //         processedPixels++;
+    //         updateProgress();
+    //     }
+    // });
 
     // Replace `pixels` with `localPixels` at the end
     pixels = std::move(localPixels);
