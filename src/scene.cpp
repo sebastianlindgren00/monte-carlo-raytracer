@@ -32,7 +32,7 @@ void Scene::render() {
     concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
         for (int i = 0; i < camera.width; i++) {
             ColorDBL color(0, 0, 0);
-            int samplesPerPixel = 8;
+            int samplesPerPixel = 64;
             for (int s = 0; s < samplesPerPixel; s++) {
                 Ray* ray = camera.getRay(i, j);
                 ray->traceRay(this, 0);
