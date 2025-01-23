@@ -12,4 +12,4 @@
 *.lib
 *.pdb
 *.log
-/result.ppm
+result.ppm
