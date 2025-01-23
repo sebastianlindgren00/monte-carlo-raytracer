@@ -20,8 +20,9 @@ void Ray::traceRay(Scene* scene, int depth) {
     Shape* hitShape = nullptr;
 
     if (scene->findNearestIntersection(this, hitShape, t_min)) {
-        glm::dvec3 hitPoint = pointAtSurface(t_min) + 0.001;
+        glm::dvec3 hitPoint = pointAtSurface(t_min) - 0.001 * direction;
         glm::dvec3 normal = hitShape->getNormal(hitPoint);
+
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {

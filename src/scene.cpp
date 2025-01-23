@@ -109,52 +109,16 @@ bool Scene::findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) c
 
 ColorDBL Scene::PixelRayColor(Ray* ray) {
     ColorDBL color(0, 0, 0);
-    while(ray->nextRay != nullptr){
-        ray = ray->nextRay;
-    }
 
-    double t_min = 0.0;
-    Shape* hitShape = nullptr;
-
-    // First ray intersection
-    if (findNearestIntersection(ray, hitShape, t_min)) {
-        glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + 0.001;
-        glm::dvec3 normal = hitShape->getNormal(hitPoint);
-
-        switch(hitShape->getMaterial().getMaterialType()){
-            case Material::type::LIGHT: {
-                return hitShape->getMaterial().getColor();
-            }
-
-            case Material::type::DIFFUSE: {
-                ColorDBL diffuseColor = ray->computeIrradiance(this, hitPoint, hitShape, &light);
-                color += diffuseColor;
-                return color;
-            }
-
-            case Material::type::MIRROR: {
-                Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(ray->direction, normal)));
-                reflectedRay.traceRay(this, 0);
-                color += PixelRayColor(&reflectedRay);
-                return color;
-            }
-        }   
-    }
-    else {
-        return color;
-    }
-
-    // Continue tracing the ray
-    while(ray->previousRay != nullptr){
-        ray = ray->previousRay;
+    while (ray != nullptr) {
         double t_min = 0.0;
         Shape* hitShape = nullptr;
 
         if (findNearestIntersection(ray, hitShape, t_min)) {
-            glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + 0.001;
+            glm::dvec3 hitPoint = ray->pointAtSurface(t_min) - 0.001 * ray->direction;
             glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
-            switch(hitShape->getMaterial().getMaterialType()){
+            switch (hitShape->getMaterial().getMaterialType()) {
                 case Material::type::LIGHT: {
                     return hitShape->getMaterial().getColor();
                 }
@@ -162,18 +126,23 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
                 case Material::type::DIFFUSE: {
                     ColorDBL diffuseColor = ray->computeIrradiance(this, hitPoint, hitShape, &light);
                     color += diffuseColor;
-                    return color;
+                    break;
                 }
 
                 case Material::type::MIRROR: {
                     Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(ray->direction, normal)));
                     reflectedRay.traceRay(this, 0);
                     color += PixelRayColor(&reflectedRay);
-                    return color;
+                    break;
                 }
-            }   
+            }
+        } else {
+            return color;
         }
+
+        ray = ray->previousRay;
     }
+
     return color;
 }
 

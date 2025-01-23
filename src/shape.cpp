@@ -59,24 +59,54 @@ glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) {
 Sphere::Sphere(glm::dvec3 center, double radius, Material material) : Shape(material), center(center), radius(radius) {}
 
 double Sphere::intersect(Ray* ray) {
-    
+    auto solveQuadratic = [&](const double &a, const double &b, const double &c, double &x0, double &x1) {
+        float discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return false;
+        else if (discriminant == 0) x0 = x1 = -0.5 * b / a;
+        else {
+            double q = (b > 0) ?
+                -0.5 * (b + sqrt(discriminant)) :
+                -0.5 * (b - sqrt(discriminant));
+            x0 = q / a;
+            x1 = c / q;
+        }
+        if (x0 > x1) std::swap(x0, x1);
+        
+        return true;
+    };
 
     glm::dvec3 oc = ray->origin - center;
     double a = glm::dot(ray->direction, ray->direction);
     double b = 2.0 * glm::dot(oc, ray->direction);
     double c = glm::dot(oc, oc) - radius * radius;
-    double discriminant = b * b - 4.0 * a * c;
-    if (discriminant < 0) {
-        return -1;
+    double t0, t1;
+    if (!solveQuadratic(a, b, c, t0, t1)) return -1.0;
+
+    if (t0 > t1) std::swap(t0, t1);
+    if (t0 < 0) {
+        t0 = t1;
+        if (t0 < 0) 
+            return -1.0;
     }
-    double t1 = (-b - sqrt(discriminant)) / (2.0 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2.0 * a);
-    if (t1 > 0) {
-        return t1;
-    } else if (t2 > 0) {
-        return t2;
-    }
-    return -1;
+
+    return t0;
+
+    // glm::dvec3 oc = ray->origin - center;
+    // double a = glm::dot(ray->direction, ray->direction);
+    // double b = 2.0 * glm::dot(oc, ray->direction);
+    // double c = glm::dot(oc, oc) - radius * radius;
+    // double discriminant = b * b - 4.0 * a * c;
+    // if (discriminant < 0) {
+    //     return -1;
+    // }
+    // double t1 = (-b - sqrt(discriminant)) / (2.0 * a);
+    // double t2 = (-b + sqrt(discriminant)) / (2.0 * a);
+    // if (t1 > 0) {
+    //     return t1;
+    // } else if (t2 > 0) {
+    //     return t2;
+    // }
+    // return -1;
 }
 
 glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
