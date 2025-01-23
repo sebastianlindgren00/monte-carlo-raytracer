@@ -32,7 +32,7 @@ void Scene::render() {
     concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
         for (int i = 0; i < camera.width; i++) {
             ColorDBL color(0, 0, 0);
-            int samplesPerPixel = 512;
+            int samplesPerPixel = 8;
             for (int s = 0; s < samplesPerPixel; s++) {
                 Ray* ray = camera.getRay(i, j);
                 ray->traceRay(this, 0);
@@ -79,8 +79,8 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
 
     // First ray intersection
     if (findNearestIntersection(ray, hitShape, t_min)) {
-        glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + hitShape->getNormal() * 0.001;
-        glm::dvec3 normal = hitShape->getNormal();
+        glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + 0.001;
+        glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
@@ -89,11 +89,6 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
 
             case Material::type::DIFFUSE: {
                 ColorDBL diffuseColor = ray->computeIrradiance(this, hitPoint, hitShape, &light);
-                color += diffuseColor;
-                return color;
-            }
-            case Material::type::DIFFUSE_TEST: {
-                ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
                 color += diffuseColor;
                 return color;
             }
@@ -118,8 +113,8 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
         Shape* hitShape = nullptr;
 
         if (findNearestIntersection(ray, hitShape, t_min)) {
-            glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + hitShape->getNormal() * 0.001;
-            glm::dvec3 normal = hitShape->getNormal();
+            glm::dvec3 hitPoint = ray->pointAtSurface(t_min) + 0.001;
+            glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
             switch(hitShape->getMaterial().getMaterialType()){
                 case Material::type::LIGHT: {

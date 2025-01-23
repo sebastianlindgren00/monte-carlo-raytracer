@@ -20,8 +20,8 @@ void Ray::traceRay(Scene* scene, int depth) {
     Shape* hitShape = nullptr;
 
     if (scene->findNearestIntersection(this, hitShape, t_min)) {
-        glm::dvec3 hitPoint = pointAtSurface(t_min) + hitShape->getNormal() * 0.001;
-        glm::dvec3 normal = hitShape->getNormal();
+        glm::dvec3 hitPoint = pointAtSurface(t_min) + 0.001;
+        glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
@@ -60,7 +60,7 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
 
     double distance = glm::distance(hitPoint, pointOnLight);
     double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
-    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
+    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
     double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
 
     if(cos_omega_y < 0.0) { cos_omega_y = 0.0; }
