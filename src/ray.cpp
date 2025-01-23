@@ -55,15 +55,13 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
     
     ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
     
-    for(int i = 0; i < MAX_SHADOW_RAYS; i++){
+    //for(int i = 0; i < MAX_SHADOW_RAYS; i++){
     double u = Light::random_double();
     double v = Light::random_double();
     glm::dvec3 pointOnLight = light->topLeft + u * (light->topRight - light->topLeft) + v * (light->bottomLeft - light->topLeft);
 
     double distance = glm::distance(hitPoint, pointOnLight);
-    if (distance <= 0.0) continue;
     double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
-    if(area <= 0.0) continue;
     double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
     double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
 
@@ -75,7 +73,7 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
 
     ColorDBL color = hitShape->getMaterial().color;
     return irradiance += color * (E * shadowFactor);
-    }
+    //}
 }
 
 double Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
