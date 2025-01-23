@@ -5,7 +5,7 @@ namespace fs = std::filesystem;
 
 int main () {
     Scene scene;
-    scene.render();
+    scene.render(12, 8);
     
     fs::path root = fs::current_path().parent_path().parent_path();
     const std::string filePath = (root / "result.ppm").string();

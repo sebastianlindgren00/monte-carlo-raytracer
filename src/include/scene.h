@@ -8,17 +8,22 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <ppl.h>
 
 class Scene {
 public:
     Scene();
     ~Scene();
     
-    void render();// byt till parallell for (kör multi core, 800% increase :O)
+    void renderRange(int start, int end);
+    void render(int numThreads, int samplesPerPixel);
 
-    ColorDBL PixelRayColor(Ray* ray, int maxDepth = 5);
+    ColorDBL PixelRayColor(Ray *ray);
 
     void saveImage(const std::string& filename);
+
+
+    bool findNearestIntersection(Ray *ray, Shape *&hitShape, double &t_min) const;
 
     Camera camera;
     std::vector<Shape*> shapes;

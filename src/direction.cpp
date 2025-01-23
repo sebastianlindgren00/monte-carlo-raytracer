@@ -30,8 +30,8 @@ glm::dvec3 Direction::CartesianLocalSystemToCartesianWorldSystem(glm::dvec3 loca
     double z_0 = localSystem.z;
 
     // Local system
-    glm::dvec3 z_L = surfaceNormal;
-    glm::dvec3 x_L = glm::cross(glm::dvec3(0.0, 0.0, 1.0), z_L);   
+    glm::dvec3 z_L = glm::normalize(surfaceNormal);
+    glm::dvec3 x_L = glm::normalize(glm::cross(glm::dvec3(1.0, 0.0, 0.0), z_L));   
     glm::dvec3 y_L = glm::cross(z_L, x_L);
 
     // World system
@@ -41,22 +41,22 @@ glm::dvec3 Direction::CartesianLocalSystemToCartesianWorldSystem(glm::dvec3 loca
 
     worldSystem = glm::dvec3(x_W, y_W, z_W);
 
-    return worldSystem;
+    return glm::normalize(worldSystem);
 }
 
 Direction Direction::CartesianWorldSystemToHemispherical(glm::dvec3 worldSystem) {
     double x = worldSystem.x;
     double y = worldSystem.y;
     double z = worldSystem.z;
-    double azimuth = std::atan2(y, x);
-    double inclination = std::asin(z);
+    double azimuth = glm::sign(y) * acos(x / (sqrt(pow(x, 2.0) + pow(y, 2.0))));;
+    double inclination = glm::acos(z / (sqrt(pow(x, 2.0) + pow(y, 2.0) + pow(z, 2.0))));
     return Direction(azimuth, inclination);
 }
 
 Direction Direction::RandomDirectionWithBRDF() {
-    double r1 = rand() / (double)RAND_MAX;
-    double r2 = rand() / (double)RAND_MAX;
-    double azimuth = 2 * M_PI * r1;
+    double r1 = (double)rand() / (double)RAND_MAX;
+    double r2 = (double)rand() / (double)RAND_MAX;
+    double azimuth = 2.0 * M_PI * r1;
     double inclination = std::acos(std::sqrt(1.0 - r2)); 
     return Direction(azimuth, inclination);
 }

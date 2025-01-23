@@ -83,6 +83,9 @@
         "xutility": "cpp",
         "filesystem": "cpp",
         "chrono": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "condition_variable": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp"
     }
 }
