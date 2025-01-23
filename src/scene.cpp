@@ -92,6 +92,11 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
                 color += diffuseColor;
                 return color;
             }
+            case Material::type::DIFFUSE_TEST: {
+                ColorDBL diffuseColor = light.computeIrradiance(hitPoint, hitShape);
+                color += diffuseColor;
+                return color;
+            }
 
             case Material::type::MIRROR: {
                 Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(ray->direction, normal)));

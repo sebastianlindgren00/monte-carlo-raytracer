@@ -5,7 +5,7 @@
 
 class Material {
     public:
-    enum type {DIFFUSE, MIRROR, LIGHT};
+    enum type {DIFFUSE, DIFFUSE_TEST, MIRROR, LIGHT};
     ColorDBL color;
     type materialType;
 
