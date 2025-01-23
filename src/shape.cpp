@@ -59,6 +59,8 @@ glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) {
 Sphere::Sphere(glm::dvec3 center, double radius, Material material) : Shape(material), center(center), radius(radius) {}
 
 double Sphere::intersect(Ray* ray) {
+    
+
     glm::dvec3 oc = ray->origin - center;
     double a = glm::dot(ray->direction, ray->direction);
     double b = 2.0 * glm::dot(oc, ray->direction);
@@ -127,7 +129,7 @@ std::vector<Shape*> ShapeFactory::createShapes() {
     std::vector<Shape*> cube = createCube(glm::dvec3(5, 3, 0), 2.0, Material(ColorDBL::blue(), Material::type::DIFFUSE));
     shapes.insert(shapes.end(), cube.begin(), cube.end());
 
-    Shape* sphere = new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::DIFFUSE));
+    Shape* sphere = new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::MIRROR));
     shapes.push_back(sphere);
 
     return shapes;

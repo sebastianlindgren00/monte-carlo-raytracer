@@ -13,23 +13,6 @@ Scene::~Scene() {
     }
 }
 
-// void Scene::renderRange(int start, int end) {
-//     std::cout << "Rendering range: " << start << " - " << end << std::endl;
-//     for (int j = start; j < end; j++) {
-//         for (int i = 0; i < camera.width; i++) {
-//             ColorDBL color(0, 0, 0);
-//             int samplesPerPixel = 8;
-//             for (int s = 0; s < samplesPerPixel; s++) {
-//                 Ray* ray = camera.getRay(i, j);
-//                 ray->traceRay(this, 0);
-//                 color += PixelRayColor(ray);
-//                 delete ray;
-//             }
-//             pixels[j * camera.width + i] = color / samplesPerPixel;
-//         }
-//     }
-// }
-
 void Scene::render(int numThreads, int samplesPerPixel) {
 
     int totalPixels = camera.width * camera.height;
@@ -162,7 +145,6 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
     }
 
     // Continue tracing the ray
-
     while(ray->previousRay != nullptr){
         ray = ray->previousRay;
         double t_min = 0.0;
@@ -191,11 +173,8 @@ ColorDBL Scene::PixelRayColor(Ray* ray) {
                 }
             }   
         }
-
-        else {
-            return color;
-        }
     }
+    return color;
 }
 
 void Scene::saveImage(const std::string& filename) {
