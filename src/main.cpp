@@ -4,8 +4,11 @@
 namespace fs = std::filesystem;
 
 int main () {
+    int numThreads = std::thread::hardware_concurrency();
+    int samplesPerPixel = 12;
+
     Scene scene;
-    scene.render(12, 8);
+    scene.render(numThreads, samplesPerPixel);
     
     fs::path root = fs::current_path().parent_path().parent_path();
     const std::string filePath = (root / "result.ppm").string();

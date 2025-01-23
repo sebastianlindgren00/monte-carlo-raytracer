@@ -72,19 +72,21 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
     double shadowFactor = isShadowed(scene, hitPoint, pointOnLight, light);
 
     ColorDBL color = hitShape->getMaterial().color;
-    return irradiance += color * (E * shadowFactor);
+    return irradiance += color * E * shadowFactor;
     //}
 }
 
 double Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
-    Ray shadowRay(hitPoint + 0.001, pointOnLight - hitPoint);
+    Ray shadowRay(hitPoint, pointOnLight - hitPoint);
     
     Shape* hitShape = nullptr;
     double t_min = 0.0;
     
-    // if(scene->findNearestIntersection(&shadowRay, hitShape, t_min) && t_min < glm::distance(hitPoint, pointOnLight) - 0.001) {
-    //     return 0.5;
-    // }
+    if(scene->findNearestIntersection(&shadowRay, hitShape, t_min)) {
+        if (hitShape != nullptr && hitShape->getMaterial().getMaterialType() != Material::type::LIGHT) {
+            return 0.0; // Make sure the shadow ray doesn't register the light source as intersection
+        }        
+    }
 
     return 1.0;
 }
