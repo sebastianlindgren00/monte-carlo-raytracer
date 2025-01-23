@@ -60,7 +60,7 @@ Sphere::Sphere(glm::dvec3 center, double radius, Material material) : Shape(mate
 
 double Sphere::intersect(Ray* ray) {
     auto solveQuadratic = [&](const double &a, const double &b, const double &c, double &x0, double &x1) {
-        float discriminant = b * b - 4 * a * c;
+        double discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return false;
         else if (discriminant == 0) x0 = x1 = -0.5 * b / a;
         else {
@@ -90,23 +90,6 @@ double Sphere::intersect(Ray* ray) {
     }
 
     return t0;
-
-    // glm::dvec3 oc = ray->origin - center;
-    // double a = glm::dot(ray->direction, ray->direction);
-    // double b = 2.0 * glm::dot(oc, ray->direction);
-    // double c = glm::dot(oc, oc) - radius * radius;
-    // double discriminant = b * b - 4.0 * a * c;
-    // if (discriminant < 0) {
-    //     return -1;
-    // }
-    // double t1 = (-b - sqrt(discriminant)) / (2.0 * a);
-    // double t2 = (-b + sqrt(discriminant)) / (2.0 * a);
-    // if (t1 > 0) {
-    //     return t1;
-    // } else if (t2 > 0) {
-    //     return t2;
-    // }
-    // return -1;
 }
 
 glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
