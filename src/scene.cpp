@@ -65,7 +65,7 @@ void Scene::render(int numThreads, int samplesPerPixel) {
     if (numThreads > MAX_THREADS)
         numThreads = MAX_THREADS;
         
-    std::cout << "Rendering scene using " << numThreads << " thread(s)...\n";
+    std::cout << "Rendering scene using " << numThreads << " thread(s) with " << samplesPerPixel << " samples\n";
     auto startTimer = std::chrono::high_resolution_clock::now();
 
     int chunkSize = camera.height / numThreads;
@@ -154,13 +154,17 @@ void Scene::saveImage(const std::string& filename) {
     int totalPixels = camera.width * camera.height;
     int processedPixels = 0;
     int progress = 0;
-    std::cout << "Saving image: 0%";
+    std::cout << "Saving image";
 
     auto updateProgress = [&]() {
         int newProgress = static_cast<int>((static_cast<double>(processedPixels) / totalPixels) * 100);
         if (newProgress > progress) {
             progress = newProgress;
-            std::cout << "\rSaving image: " << progress << "%" << std::flush;
+            std::cout << "\rSaving image";
+            for (int i = 0; i < (progress % 5); ++i) {
+                std::cout << ".";
+            }
+            std::cout << std::flush;
         }
     };
 
@@ -173,5 +177,5 @@ void Scene::saveImage(const std::string& filename) {
         updateProgress();
     }
     file.close();
-    std::cout << "\nImage saved successfully.\n";
+    std::cout << " to " << filename << std::endl;
 }

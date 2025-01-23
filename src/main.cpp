@@ -13,7 +13,6 @@ int main () {
     fs::path root = fs::current_path().parent_path().parent_path();
     const std::string filePath = (root / "result.ppm").string();
     scene.saveImage(filePath);
-    std::cout << "Image saved to " << filePath << std::endl;
 
     // Open the image in Visual Studio Code
     std::string command = "code \"" + filePath + "\"";
