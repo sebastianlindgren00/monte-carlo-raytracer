@@ -107,6 +107,7 @@ bool Scene::findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) c
 }
 
 
+
 ColorDBL Scene::PixelRayColor(Ray* ray) {
     ColorDBL color(0, 0, 0);
 

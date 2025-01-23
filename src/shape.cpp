@@ -151,12 +151,12 @@ std::vector<Shape*> ShapeFactory::createShapes() {
 std::vector<Shape*> ShapeFactory::createRoom() {
     std::vector<Shape*> shapes;
     // Walls
-    shapes.push_back(new Plane(glm::dvec3(10, 6, 5), glm::dvec3(13, 0, 5), glm::dvec3(10, 6, -5), glm::dvec3(13, 0, -5), Material(ColorDBL::red(), Material::type::DIFFUSE))); // Far right
-    shapes.push_back(new Plane(glm::dvec3(13, 0, 5), glm::dvec3(10, -6, 5), glm::dvec3(13, 0, -5), glm::dvec3(10, -6, -5), Material(ColorDBL::green(), Material::type::DIFFUSE))); // Far left
-    shapes.push_back(new Plane(glm::dvec3(10, -6, 5), glm::dvec3(0, -6, 5), glm::dvec3(10, -6, -5), glm::dvec3(0, -6, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE))); // Left
-    shapes.push_back(new Plane(glm::dvec3(0, 6, 5), glm::dvec3(10, 6, 5), glm::dvec3(0, 6, -5), glm::dvec3(10, 6, -5), Material(ColorDBL::red(), Material::type::DIFFUSE)));
-    shapes.push_back(new Plane(glm::dvec3(-3, 0, 5), glm::dvec3(0, 6, 5), glm::dvec3(-3, 0, -5), glm::dvec3(0, 6, -5), Material(ColorDBL::green(), Material::type::DIFFUSE)));
-    shapes.push_back(new Plane(glm::dvec3(0, -6, 5), glm::dvec3(-3, 0, 5), glm::dvec3(0, -6, -5), glm::dvec3(-3, 0, -5), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
+    shapes.push_back(new Plane(glm::dvec3(10.0, 6.0, 5.0), glm::dvec3(13.0, 0.0, 5.0), glm::dvec3(10.0, 6.0, -5.0), glm::dvec3(13.0, 0.0, -5.0), Material(ColorDBL::red(), Material::type::DIFFUSE))); // Far right
+    shapes.push_back(new Plane(glm::dvec3(13.0, 0.0, 5.0), glm::dvec3(10.0, -6.0, 5.0), glm::dvec3(13.0, 0.0, -5.0), glm::dvec3(10.0, -6.0, -5.0), Material(ColorDBL::green(), Material::type::DIFFUSE))); // Far left
+    shapes.push_back(new Plane(glm::dvec3(10.0, -6.0, 5.0), glm::dvec3(0.0, -6.0, 5.0), glm::dvec3(10.0, -6, -5.0), glm::dvec3(0.0, -6.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE))); // Left
+    shapes.push_back(new Plane(glm::dvec3(0.0, 6.0, 5.0), glm::dvec3(10.0, 6.0, 5.0), glm::dvec3(0.0, 6.0, -5.0), glm::dvec3(10.0, 6.0, -5.0), Material(ColorDBL::red(), Material::type::DIFFUSE)));
+    shapes.push_back(new Plane(glm::dvec3(-3.0, 0.0, 5.0), glm::dvec3(0.0, 6.0, 5.0), glm::dvec3(-3.0, 0.0, -5.0), glm::dvec3(0.0, 6.0, -5.0), Material(ColorDBL::green(), Material::type::DIFFUSE)));
+    shapes.push_back(new Plane(glm::dvec3(0.0, -6.0, 5.0), glm::dvec3(-3.0, 0.0, 5.0), glm::dvec3(0.0, -6.0, -5.0), glm::dvec3(-3.0, 0.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
 
     //Floor
     shapes.push_back(new Triangle(glm::dvec3(13, 0, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
@@ -164,8 +164,8 @@ std::vector<Shape*> ShapeFactory::createRoom() {
 
     // Roof
     shapes.push_back(new Triangle(glm::dvec3(-3.0, 0.0, -5.0), glm::dvec3(0.0, -6.0, -5.0), glm::dvec3(0, 6.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Triangle(glm::dvec3(10, 0, -5.0), glm::dvec3(10, 0, -5.0), glm::dvec3(0, 0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Plane(glm::dvec3(0, 6, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(0, -6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE))); // somehow roof, but it's -5 on z
+    shapes.push_back(new Triangle(glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(0.0, 0.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
+    shapes.push_back(new Plane(glm::dvec3(0.0, 6.0, 5.0), glm::dvec3(10.0, 6.0, 5.0), glm::dvec3(0.0, -6.0, 5.0), glm::dvec3(10.0, -6.0, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE))); // somehow roof, but it's -5 on z
 
     return shapes;
 }

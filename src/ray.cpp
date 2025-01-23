@@ -55,12 +55,15 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
     
     ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
     
+    for(int i = 0; i < MAX_SHADOW_RAYS; i++){
     double u = Light::random_double();
     double v = Light::random_double();
     glm::dvec3 pointOnLight = light->topLeft + u * (light->topRight - light->topLeft) + v * (light->bottomLeft - light->topLeft);
 
     double distance = glm::distance(hitPoint, pointOnLight);
+    if (distance <= 0.0) continue;
     double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
+    if(area <= 0.0) continue;
     double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
     double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
 
@@ -68,20 +71,22 @@ ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape*
     double G = cos_omega_x * cos_omega_y / (distance * distance);
     double E = area * G * light->WATT / M_PI;
 
-    ColorDBL color = hitShape->getMaterial().color;
+    double shadowFactor = isShadowed(scene, hitPoint, pointOnLight, light);
 
-    return irradiance += color * E;
+    ColorDBL color = hitShape->getMaterial().color;
+    return irradiance += color * (E * shadowFactor);
+    }
 }
 
-bool Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
-    glm::dvec3 direction = pointOnLight - hitPoint;
-    Ray* shadowRay = new Ray(hitPoint, direction);
-    shadowRay->color = ColorDBL(1.0, 1.0, 1.0);
-    double t_min = glm::distance(hitPoint, light->topLeft);
+double Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
+    Ray shadowRay(hitPoint + 0.001, pointOnLight - hitPoint);
+    
     Shape* hitShape = nullptr;
+    double t_min = 0.0;
+    
+    // if(scene->findNearestIntersection(&shadowRay, hitShape, t_min) && t_min < glm::distance(hitPoint, pointOnLight) - 0.001) {
+    //     return 0.5;
+    // }
 
-    if(scene->findNearestIntersection(shadowRay, hitShape, t_min)) {
-        return true;
-    }
-    return false;
+    return 1.0;
 }

@@ -31,7 +31,7 @@ glm::dvec3 Direction::CartesianLocalSystemToCartesianWorldSystem(glm::dvec3 loca
 
     // Local system
     glm::dvec3 z_L = glm::normalize(surfaceNormal);
-    glm::dvec3 x_L = glm::normalize(glm::cross(glm::dvec3(1.0, 0.0, 0.0), z_L));   
+    glm::dvec3 x_L = glm::normalize(glm::cross(glm::dvec3(0.0, 1.0, 0.0), z_L));   
     glm::dvec3 y_L = glm::cross(z_L, x_L);
 
     // World system

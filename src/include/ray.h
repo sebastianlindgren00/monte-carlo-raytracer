@@ -23,7 +23,7 @@ public:
     ColorDBL computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitshape, Light* light) const;
 
     // function to track if it should be shadowed or not
-    bool isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const;
+    double isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const;
 
     glm::dvec3 origin; 
     glm::dvec3 direction;
