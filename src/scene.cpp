@@ -1,5 +1,6 @@
-#include "include/scene.h"
-
+#include <thread>
+#include <ppl.h>
+#include "scene.h"
 
 Scene::Scene() : camera(800, 800), light(glm::dvec3(5.0, 1.5, 4.90), glm::dvec3(5.0, -1.5, 4.90), glm::dvec3(8.0, 1.5, 4.90), glm::dvec3(8.0, -1.5, 4.90)) { 
     shapes = ShapeFactory::createShapes();
@@ -12,13 +13,37 @@ Scene::~Scene() {
     }
 }
 
-void Scene::render() {
+// void Scene::renderRange(int start, int end) {
+//     std::cout << "Rendering range: " << start << " - " << end << std::endl;
+//     for (int j = start; j < end; j++) {
+//         for (int i = 0; i < camera.width; i++) {
+//             ColorDBL color(0, 0, 0);
+//             int samplesPerPixel = 8;
+//             for (int s = 0; s < samplesPerPixel; s++) {
+//                 Ray* ray = camera.getRay(i, j);
+//                 ray->traceRay(this, 0);
+//                 color += PixelRayColor(ray);
+//                 delete ray;
+//             }
+//             pixels[j * camera.width + i] = color / samplesPerPixel;
+//         }
+//     }
+// }
+
+void Scene::render(int numThreads, int samplesPerPixel) {
+
     int totalPixels = camera.width * camera.height;
     std::atomic<int> processedPixels{0};
     std::atomic<int> progress{0};
     std::vector<ColorDBL> localPixels(camera.width * camera.height); // Preallocate the size
-
+    std::mutex localPixelsMutex;
     std::mutex printMutex;
+
+    // Function that modifies localPixels
+    auto modifyLocalPixels = [&](int index, const ColorDBL& color) {
+        std::lock_guard<std::mutex> guard(localPixelsMutex);
+        localPixels[index] = color;
+    };
 
     auto updateProgress = [&]() {
         int newProgress = static_cast<int>((static_cast<double>(processedPixels) / totalPixels) * 100);
@@ -26,30 +51,61 @@ void Scene::render() {
             progress = newProgress;
             std::lock_guard<std::mutex> lock(printMutex);
             std::cout << "\rRendering scene: " << progress << "%" << std::flush;
+            // std::cout << "\rRendering scene: " << progress << "%";
         }
     };
 
-    concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
-        for (int i = 0; i < camera.width; i++) {
-            ColorDBL color(0, 0, 0);
-            int samplesPerPixel = 8;
-            for (int s = 0; s < samplesPerPixel; s++) {
-                Ray* ray = camera.getRay(i, j);
-                ray->traceRay(this, 0);
-                color += PixelRayColor(ray);
-                delete ray;
+    // Update renderRange to use modifyLocalPixels
+    auto renderRange = [&](int start, int end) {
+        for (int j = start; j < end; j++) {
+            // std::cout << "\rThread (" << start << "): " << j << " pixels\n";
+            if (end == camera.height) {
+                std::cout << std::flush;
             }
-            color /= samplesPerPixel;
-            localPixels[j * camera.width + i] = color;
-            processedPixels++;
-            updateProgress();
+            for (int i = 0; i < camera.width; i++) {
+                ColorDBL color(0, 0, 0);
+                for (int s = 0; s < samplesPerPixel; s++) {
+                    Ray* ray = camera.getRay(i, j);
+                    ray->traceRay(this, 0);
+                    color += PixelRayColor(ray);
+                    delete ray;
+                }
+                color /= samplesPerPixel;
+                modifyLocalPixels(j * camera.width + i, color);
+                processedPixels++;
+                updateProgress();
+            }
         }
-    });
+    };
 
-    // Replace `pixels` with `localPixels` at the end
+    const int MAX_THREADS = std::thread::hardware_concurrency();
+    if (numThreads > MAX_THREADS)
+        numThreads = MAX_THREADS;
+        
+    std::cout << "Rendering scene using " << numThreads << " thread(s)...\n";
+    auto startTimer = std::chrono::high_resolution_clock::now();
+
+    int chunkSize = camera.height / numThreads;
+    std::vector<std::thread> threads;
+
+    // Create threads
+    for (int i = 0; i < numThreads; i++) {
+        int start = i * chunkSize;
+        int end = (i == numThreads - 1) ? camera.height : (i + 1) * chunkSize;
+        threads.push_back(std::thread(renderRange, start, end));
+    }
+
+    // Join threads
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
+
     pixels = std::move(localPixels);
 
     std::cout << "\nScene rendered successfully.\n";
+    auto endTimer = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = endTimer - startTimer;
+    std::cout << "Elapsed time: " << elapsed.count() << " seconds\n";
 }
 
 bool Scene::findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) const{
