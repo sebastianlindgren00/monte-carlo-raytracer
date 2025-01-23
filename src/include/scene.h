@@ -16,13 +16,14 @@ public:
     ~Scene();
     
     void renderRange(int start, int end);
-    void render(int numThreads);
+    void render(int numThreads, int samplesPerPixel);
 
     ColorDBL PixelRayColor(Ray *ray);
 
     void saveImage(const std::string& filename);
 
-    bool findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) const;
+
+    bool findNearestIntersection(Ray *ray, Shape *&hitShape, double &t_min) const;
 
     Camera camera;
     std::vector<Shape*> shapes;

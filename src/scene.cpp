@@ -1,4 +1,3 @@
-#include "include/scene.h"
 #include <thread>
 #include <ppl.h>
 #include "scene.h"
@@ -31,7 +30,7 @@ Scene::~Scene() {
 //     }
 // }
 
-void Scene::render(int numThreads = 1) {
+void Scene::render(int numThreads, int samplesPerPixel) {
 
     int totalPixels = camera.width * camera.height;
     std::atomic<int> processedPixels{0};
@@ -52,16 +51,19 @@ void Scene::render(int numThreads = 1) {
             progress = newProgress;
             std::lock_guard<std::mutex> lock(printMutex);
             std::cout << "\rRendering scene: " << progress << "%" << std::flush;
+            // std::cout << "\rRendering scene: " << progress << "%";
         }
     };
 
     // Update renderRange to use modifyLocalPixels
     auto renderRange = [&](int start, int end) {
-        std::cout << "Rendering range: " << start << " - " << end << "\n" << std::endl;
         for (int j = start; j < end; j++) {
+            // std::cout << "\rThread (" << start << "): " << j << " pixels\n";
+            if (end == camera.height) {
+                std::cout << std::flush;
+            }
             for (int i = 0; i < camera.width; i++) {
                 ColorDBL color(0, 0, 0);
-                int samplesPerPixel = 8;
                 for (int s = 0; s < samplesPerPixel; s++) {
                     Ray* ray = camera.getRay(i, j);
                     ray->traceRay(this, 0);
@@ -80,7 +82,7 @@ void Scene::render(int numThreads = 1) {
     if (numThreads > MAX_THREADS)
         numThreads = MAX_THREADS;
         
-    std::cout << "Rendering scene using " << numThreads << " threads...\n";
+    std::cout << "Rendering scene using " << numThreads << " thread(s)...\n";
     auto startTimer = std::chrono::high_resolution_clock::now();
 
     int chunkSize = camera.height / numThreads;
@@ -98,29 +100,12 @@ void Scene::render(int numThreads = 1) {
         thread.join();
     }
 
-    // concurrency::parallel_for((size_t)0, (size_t)camera.height, [&](size_t j) {
-    //     for (int i = 0; i < camera.width; i++) {
-    //         ColorDBL color(0, 0, 0);
-    //         int samplesPerPixel = 8;
-    //         for (int s = 0; s < samplesPerPixel; s++) {
-    //             Ray* ray = camera.getRay(i, j);
-    //             ray->traceRay(this, 0);
-    //             color += PixelRayColor(ray);
-    //             delete ray;
-    //         }
-    //         color /= samplesPerPixel;
-    //         localPixels[j * camera.width + i] = color;
-    //         processedPixels++;
-    //         updateProgress();
-    //     }
-    // });
-
-    // Replace `pixels` with `localPixels` at the end
     pixels = std::move(localPixels);
 
     std::cout << "\nScene rendered successfully.\n";
     auto endTimer = std::chrono::high_resolution_clock::now();
-    std::cout << "Elapsed time: " << (endTimer - startTimer).count() << " seconds\n";
+    std::chrono::duration<double> elapsed = endTimer - startTimer;
+    std::cout << "Elapsed time: " << elapsed.count() << " seconds\n";
 }
 
 bool Scene::findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) const{
