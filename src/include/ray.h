@@ -20,7 +20,10 @@ public:
 
     void traceRay(Scene* scene, int depth);
 
-    ColorDBL computeIrradiance(const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const;
+    ColorDBL computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitshape, Light* light) const;
+
+    // function to track if it should be shadowed or not
+    bool isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const;
 
     glm::dvec3 origin; 
     glm::dvec3 direction;
@@ -29,5 +32,6 @@ public:
     ColorDBL color;
     int depth;
     const int MAX_DEPTH = 2;
+    const int MAX_SHADOW_RAYS = 10;
 };
 #endif // RAY_H

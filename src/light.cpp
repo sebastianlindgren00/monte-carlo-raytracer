@@ -13,9 +13,15 @@ Shape* Light::getLightShape() {
 }
 
 double Light::random_double() {
-    return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    return (double)rand() / (double)RAND_MAX;
 }
 
 std::vector<glm::dvec3> Light::getVertices() const {
     return {topLeft, topRight, bottomLeft, bottomRight};
+}
+
+glm::dvec3 Light::randomPointOnLight() {
+    double u = random_double();
+    double v = random_double();
+    return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
 }
