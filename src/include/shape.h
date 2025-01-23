@@ -64,6 +64,7 @@ public:
     static std::vector<Shape*> createShapes();
 private:
     static std::vector<Shape*> createRoom();
+    static std::vector<Shape*> createCube(glm::dvec3 position, double size, Material material);
 };
 
 #endif // SHAPE_H

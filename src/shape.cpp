@@ -18,7 +18,7 @@ Material Shape::getMaterial() const {
     return material;
 }
 
-//Plane
+#pragma region Plane
 Plane::Plane(
     glm::dvec3 topLeft, glm::dvec3 topRight, glm::dvec3 bottomLeft, glm::dvec3 bottomRight, Material material) : 
     Shape(material), bottomLeft(bottomLeft), topLeft(topLeft), bottomRight(bottomRight), topRight(topRight), 
@@ -53,8 +53,9 @@ glm::dvec3 Plane::getNormal() {
 glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) {
     return normal;
 }
+#pragma endregion
 
-//Sphere
+#pragma region Sphere
 Sphere::Sphere(glm::dvec3 center, double radius, Material material) : Shape(material), center(center), radius(radius) {}
 
 double Sphere::intersect(Ray* ray) {
@@ -80,8 +81,9 @@ glm::dvec3 Sphere::getNormal(glm::dvec3 hitPoint) {
     glm::dvec3 normal = glm::normalize(hitPoint - center);
     return normal;
 }
+#pragma endregion
 
-//Triangle
+#pragma region Triangle
 Triangle::Triangle(
     glm::dvec3 top, glm::dvec3 baseLeft, glm::dvec3 baseRight, Material material) : 
     Shape(material), top(top), baseLeft(baseLeft), baseRight(baseRight), 
@@ -113,10 +115,21 @@ double Triangle::intersect(Ray* ray) {
 glm::dvec3 Triangle::getNormal(glm::dvec3 hitPoint) {
     return normal;
 }
+#pragma endregion
 
 //ShapeFactory
 std::vector<Shape*> ShapeFactory::createShapes() {
-    std::vector<Shape*> shapes = createRoom();
+    std::vector<Shape *> shapes;
+    
+    std::vector<Shape*> room = createRoom();
+    shapes.insert(shapes.end(), room.begin(), room.end());
+
+    std::vector<Shape*> cube = createCube(glm::dvec3(5, 3, 0), 2.0, Material(ColorDBL::blue(), Material::type::DIFFUSE));
+    shapes.insert(shapes.end(), cube.begin(), cube.end());
+
+    Shape* sphere = new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::DIFFUSE));
+    shapes.push_back(sphere);
+
     return shapes;
 }
 
@@ -139,8 +152,33 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Triangle(glm::dvec3(10, 0, -5.0), glm::dvec3(10, 0, -5.0), glm::dvec3(0, 0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
     shapes.push_back(new Plane(glm::dvec3(0, 6, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(0, -6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE))); // somehow roof, but it's -5 on z
 
-    // Misc
-    shapes.push_back(new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::DIFFUSE)));
+    return shapes;
+}
+
+std::vector<Shape*> ShapeFactory::createCube(glm::dvec3 position, double size, Material material) {
+    std::vector<Shape*> shapes;
+    double halfSize = size / 2.0;
+    glm::dvec3 topLeftFront = glm::dvec3(position.x - halfSize, position.y + halfSize, position.z + halfSize);
+    glm::dvec3 topRightFront = glm::dvec3(position.x + halfSize, position.y + halfSize, position.z + halfSize);
+    glm::dvec3 bottomLeftFront = glm::dvec3(position.x - halfSize, position.y - halfSize, position.z + halfSize);
+    glm::dvec3 bottomRightFront = glm::dvec3(position.x + halfSize, position.y - halfSize, position.z + halfSize);
+    glm::dvec3 topLeftBack = glm::dvec3(position.x - halfSize, position.y + halfSize, position.z - halfSize);
+    glm::dvec3 topRightBack = glm::dvec3(position.x + halfSize, position.y + halfSize, position.z - halfSize);
+    glm::dvec3 bottomLeftBack = glm::dvec3(position.x - halfSize, position.y - halfSize, position.z - halfSize);
+    glm::dvec3 bottomRightBack = glm::dvec3(position.x + halfSize, position.y - halfSize, position.z - halfSize);
+
+    // Front
+    shapes.push_back(new Plane(topLeftFront, topRightFront, bottomLeftFront, bottomRightFront, material));
+    // Back
+    shapes.push_back(new Plane(topRightBack, topLeftBack, bottomRightBack, bottomLeftBack, material));
+    // Left
+    shapes.push_back(new Plane(topLeftBack, topLeftFront, bottomLeftBack, bottomLeftFront, material));
+    // Right
+    shapes.push_back(new Plane(topRightFront, topRightBack, bottomRightFront, bottomRightBack, material));
+    // Top
+    shapes.push_back(new Plane(topLeftBack, topRightBack, topLeftFront, topRightFront, material));
+    // Bottom
+    shapes.push_back(new Plane(bottomLeftFront, bottomRightFront, bottomLeftBack, bottomRightBack, material));
 
     return shapes;
 }
