@@ -16,9 +16,9 @@ public:
     ~Scene();
     
     void renderRange(int start, int end);
-    void render();// byt till parallell for (kör multi core, 800% increase :O)
+    void render(int numThreads);
 
-    ColorDBL PixelRayColor(Ray* ray);
+    ColorDBL PixelRayColor(Ray *ray);
 
     void saveImage(const std::string& filename);
 
