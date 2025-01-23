@@ -15,6 +15,8 @@ public:
     ColorDBL computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape) const;
     
     std::vector<glm::dvec3> getVertices() const;
+
+    glm::dvec3 randomPointOnLight();
     
     glm::dvec3 topLeft;
     glm::dvec3 topRight;

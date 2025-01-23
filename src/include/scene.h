@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <ppl.h>
 
 class Scene {
 public:
@@ -19,6 +20,8 @@ public:
     ColorDBL PixelRayColor(Ray* ray);
 
     void saveImage(const std::string& filename);
+
+    bool findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) const;
 
     Camera camera;
     std::vector<Shape*> shapes;

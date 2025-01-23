@@ -16,21 +16,11 @@ void Ray::traceRay(Scene* scene, int depth) {
     }
 
     ColorDBL color(0, 0, 0);
-    double t_min = std::numeric_limits<double>::max();
+    double t_min = 0.0;
     Shape* hitShape = nullptr;
 
-    // intersection
-    for (auto it = scene->shapes.begin(); it != scene->shapes.end(); ++it) {
-        Shape* shape = *it;
-        double t = shape->intersect(this);
-        if (t > 0.0 && t < t_min) {
-            t_min = t;
-            hitShape = shape;
-        }
-    }
-
-    if (hitShape) {
-        glm::dvec3 hitPoint = pointAtSurface(t_min);
+    if (scene->findNearestIntersection(this, hitShape, t_min)) {
+        glm::dvec3 hitPoint = pointAtSurface(t_min) + hitShape->getNormal() * 0.001;
         glm::dvec3 normal = hitShape->getNormal();
 
         switch(hitShape->getMaterial().getMaterialType()){
@@ -53,7 +43,6 @@ void Ray::traceRay(Scene* scene, int depth) {
             case Material::type::MIRROR: {
                 this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)));
                 this->nextRay->previousRay = this;
-                this->nextRay = this;
                 this->nextRay->traceRay(scene, depth + 1);
                 break;
             }
@@ -61,25 +50,37 @@ void Ray::traceRay(Scene* scene, int depth) {
     }
 }
 
-ColorDBL Ray::computeIrradiance(const glm::dvec3& hitPoint, const Shape* hitshape, Light* light) const {
+ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const {
     
     ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
-
+    
     double u = Light::random_double();
     double v = Light::random_double();
-    
     glm::dvec3 pointOnLight = light->topLeft + u * (light->topRight - light->topLeft) + v * (light->bottomLeft - light->topLeft);
 
     double distance = glm::distance(hitPoint, pointOnLight);
     double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
-    double cos_omega_x = glm::clamp(glm::dot(hitshape->getNormal(), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
+    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
     double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
 
     if(cos_omega_y < 0.0) { cos_omega_y = 0.0; }
-
     double G = cos_omega_x * cos_omega_y / (distance * distance);
     double E = area * G * light->WATT / M_PI;
-    ColorDBL color = hitshape->getMaterial().color;
+
+    ColorDBL color = hitShape->getMaterial().color;
 
     return irradiance += color * E;
+}
+
+bool Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
+    glm::dvec3 direction = pointOnLight - hitPoint;
+    Ray* shadowRay = new Ray(hitPoint, direction);
+    shadowRay->color = ColorDBL(1.0, 1.0, 1.0);
+    double t_min = glm::distance(hitPoint, light->topLeft);
+    Shape* hitShape = nullptr;
+
+    if(scene->findNearestIntersection(shadowRay, hitShape, t_min)) {
+        return true;
+    }
+    return false;
 }
