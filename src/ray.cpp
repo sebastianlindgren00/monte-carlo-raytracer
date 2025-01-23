@@ -9,8 +9,9 @@ glm::dvec3 Ray::pointAtSurface(double point) const {
 }
 
 void Ray::traceRay(Scene* scene, int depth) {
+    std::cout << "Tracing ray at depth: " << depth << std::endl;
 
-    if (depth > MAX_DEPTH  || (double)rand() > 0.8) { // added a russian roulette with 20% chance of ray termination
+    if ((double)rand() > 0.8) { // added a russian roulette with 20% chance of ray termination
         this->nextRay = nullptr;
         return;
     }

@@ -5,7 +5,7 @@ namespace fs = std::filesystem;
 
 int main () {
     int numThreads = std::thread::hardware_concurrency();
-    int samplesPerPixel = 12;
+    int samplesPerPixel = 8;
 
     Scene scene;
     scene.render(numThreads, samplesPerPixel);

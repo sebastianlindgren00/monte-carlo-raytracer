@@ -1,4 +1,5 @@
 #include "include/shape.h"
+#include "shape.h"
 
 Shape::Shape(Material material) : material(material) {}
 Shape::~Shape() {}
@@ -52,6 +53,10 @@ glm::dvec3 Plane::getNormal() {
 
 glm::dvec3 Plane::getNormal(glm::dvec3 hitPoint) {
     return normal;
+}
+
+void Plane::flipNormal() {
+    normal = -normal;
 }
 #pragma endregion
 
@@ -130,6 +135,9 @@ double Triangle::intersect(Ray* ray) {
 glm::dvec3 Triangle::getNormal(glm::dvec3 hitPoint) {
     return normal;
 }
+void Triangle::flipNormal() {
+    normal = -normal;
+}
 #pragma endregion
 
 //ShapeFactory
@@ -142,7 +150,7 @@ std::vector<Shape*> ShapeFactory::createShapes() {
     std::vector<Shape*> cube = createCube(glm::dvec3(5, 3, 0), 2.0, Material(ColorDBL::blue(), Material::type::DIFFUSE));
     shapes.insert(shapes.end(), cube.begin(), cube.end());
 
-    Shape* sphere = new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::MIRROR));
+    Shape* sphere = new Sphere(glm::dvec3(6, 0, 0), 1.0, Material(ColorDBL::white(), Material::type::DIFFUSE));
     shapes.push_back(sphere);
 
     return shapes;
@@ -163,9 +171,12 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Plane(glm::dvec3(0, 6, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(0, -6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
 
     // Roof
-    shapes.push_back(new Triangle(glm::dvec3(-3.0, 0.0, -5.0), glm::dvec3(0.0, -6.0, -5.0), glm::dvec3(0, 6.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Triangle(glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(0.0, 0.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Plane(glm::dvec3(0.0, 6.0, 5.0), glm::dvec3(10.0, 6.0, 5.0), glm::dvec3(0.0, -6.0, 5.0), glm::dvec3(10.0, -6.0, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE))); // somehow roof, but it's -5 on z
+    Triangle *roofTriangle = new Triangle(glm::dvec3(13, 0, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE));
+    roofTriangle->flipNormal();
+    shapes.push_back(roofTriangle);
+    Plane *roofPlane = new Plane(glm::dvec3(0, 6, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(0, -6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE));
+    roofPlane->flipNormal();
+    shapes.push_back(roofPlane);
 
     return shapes;
 }

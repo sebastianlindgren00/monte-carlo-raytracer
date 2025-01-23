@@ -31,7 +31,7 @@ public:
     Ray* nextRay;
     ColorDBL color;
     int depth;
-    const int MAX_DEPTH = 2;
+    const int MAX_DEPTH = 4;
     const int MAX_SHADOW_RAYS = 10;
 };
 #endif // RAY_H

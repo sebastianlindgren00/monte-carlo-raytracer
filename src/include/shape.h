@@ -29,7 +29,8 @@ class Plane : public Shape {
     double intersect(Ray* ray) override;
     
     glm::dvec3 getNormal();
-    glm::dvec3 getNormal(glm::dvec3 hitPoint) override; 
+    glm::dvec3 getNormal(glm::dvec3 hitPoint) override;
+    void flipNormal();
 
     glm::dvec3 bottomLeft, topLeft, bottomRight, topRight, normal;
 };
@@ -55,7 +56,8 @@ public:
 
     // Compute the normal of the triangle (cross product of two edges)
     glm::dvec3 getNormal(glm::dvec3 hitPoint) override;
-    
+    void flipNormal();
+
     glm::dvec3 top, baseLeft, baseRight, normal;
 };
 
