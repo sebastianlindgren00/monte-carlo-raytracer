@@ -163,9 +163,8 @@ std::vector<Shape*> ShapeFactory::createRoom() {
     shapes.push_back(new Plane(glm::dvec3(0, 6, -5.0), glm::dvec3(10, 6, -5.0), glm::dvec3(0, -6, -5.0), glm::dvec3(10, -6, -5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
 
     // Roof
-    shapes.push_back(new Triangle(glm::dvec3(-3.0, 0.0, -5.0), glm::dvec3(0.0, -6.0, -5.0), glm::dvec3(0, 6.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Triangle(glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(10.0, 0.0, -5.0), glm::dvec3(0.0, 0.0, -5.0), Material(ColorDBL::blue(), Material::type::DIFFUSE)));
-    shapes.push_back(new Plane(glm::dvec3(0.0, 6.0, 5.0), glm::dvec3(10.0, 6.0, 5.0), glm::dvec3(0.0, -6.0, 5.0), glm::dvec3(10.0, -6.0, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE_TEST))); // somehow roof, but it's -5 on z
+    shapes.push_back(new Triangle(glm::dvec3(13, 0, 5.0), glm::dvec3(10, 6, 5.0), glm::dvec3(10, -6, 5.0), Material(ColorDBL::grey(), Material::type::DIFFUSE)));
+    shapes.push_back(new Plane(glm::dvec3(0.0, 6.0, 5), glm::dvec3(10.0, 6.0, 5), glm::dvec3(0.0, -6.0, 5), glm::dvec3(10.0, -6.0, 5), Material(ColorDBL::blue(), Material::type::DIFFUSE_TEST)));
 
     return shapes;
 }

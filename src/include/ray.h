@@ -15,6 +15,7 @@ class Ray {
 public:
     
     Ray(const glm::dvec3& origin, const glm::dvec3& direction);
+    Ray(const glm::dvec3& origin, const glm::dvec3& direction, int depth);
 
     glm::dvec3 pointAtSurface(double point) const;
 
@@ -33,7 +34,7 @@ public:
     Ray* nextRay;
     ColorDBL color;
     int depth;
-    const int MAX_DEPTH = 10;
+    const int MAX_DEPTH = 5;
     const int MAX_SHADOW_RAYS = 10;
 };
 #endif // RAY_H

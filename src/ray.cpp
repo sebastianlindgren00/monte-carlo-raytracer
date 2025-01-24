@@ -1,8 +1,10 @@
 #include "include/ray.h"
 #include "include/scene.h"
 #include "include/shape.h"
+#include "ray.h"
 
-Ray::Ray(const glm::dvec3& origin, const glm::dvec3& direction) : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr) {}
+Ray::Ray(const glm::dvec3& origin, const glm::dvec3& direction) : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr), depth(0) {}
+Ray::Ray(const glm::dvec3& origin, const glm::dvec3& direction, int depth) : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr), depth(depth) {}
 
 glm::dvec3 Ray::pointAtSurface(double point) const {
     return origin + point * direction;
@@ -22,7 +24,6 @@ void Ray::traceRay(Scene* scene) {
         glm::dvec3 hitPoint = pointAtSurface(t_min) - 0.001 * direction;
         glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
-
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
                 // ray dies instantly
@@ -34,7 +35,7 @@ void Ray::traceRay(Scene* scene) {
                 glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
                 glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
 
-                this->nextRay = new Ray(hitPoint, worldSystem);
+                this->nextRay = new Ray(hitPoint, worldSystem, depth + 1);
                 this->nextRay->previousRay = this;
                 this->nextRay->traceRay(scene);
                 break;
@@ -42,19 +43,19 @@ void Ray::traceRay(Scene* scene) {
 
             case Material::type::DIFFUSE_TEST: {
 
-                //std::cout << "DIFFUSE_TEST hit in traceRay" << std::endl;   
+                std::cout << "DIFFUSE_TEST, Depth" << depth << std::endl;   
                 Direction direction = Direction::RandomDirection();
                 glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
                 glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
 
-                this->nextRay = new Ray(hitPoint, worldSystem);
+                this->nextRay = new Ray(hitPoint, worldSystem, depth + 1);
                 this->nextRay->previousRay = this;
                 this->nextRay->traceRay(scene);
                 break;
             }
 
             case Material::type::MIRROR: {
-                this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)));
+                this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)), depth + 1);
                 this->nextRay->previousRay = this;
                 this->nextRay->traceRay(scene);
                 break;
@@ -84,7 +85,7 @@ void Ray::PixelRayColor(Scene* scene) {
 
                 case Material::type::DIFFUSE: {
                     ColorDBL diffuseColor = currentRay->computeIrradiance(scene, hitPoint, hitShape, light);
-                    std::cout << "diffuseColor: " << diffuseColor.r << " " << diffuseColor.g << " " << diffuseColor.b << std::endl; 
+                    // std::cout << "diffuseColor: " << diffuseColor.r << " " << diffuseColor.g << " " << diffuseColor.b << std::endl; 
                     double distanceFactor = glm::length(hitPoint - light->randomPointOnLight());
                     if(currentRay->previousRay != nullptr){
                         currentRay->color +=  diffuseColor * (1.0 / distanceFactor) * (hitShape->getMaterial().color + currentRay->previousRay->color);
