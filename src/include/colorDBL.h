@@ -21,6 +21,8 @@ public:
 
     ColorDBL& operator+=(const ColorDBL& other);
     ColorDBL operator*(const ColorDBL& other) const;
+    ColorDBL operator+(const ColorDBL& other) const;
+    // double * ColorDBL
     ColorDBL operator*(double scalar) const;
     ColorDBL operator/(const ColorDBL& other) const;
     ColorDBL& operator/=(double scalar);

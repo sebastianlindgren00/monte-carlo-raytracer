@@ -18,12 +18,14 @@ public:
 
     glm::dvec3 pointAtSurface(double point) const;
 
-    void traceRay(Scene* scene, int depth);
+    void traceRay(Scene* scene);
 
     ColorDBL computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitshape, Light* light) const;
 
     // function to track if it should be shadowed or not
     double isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const;
+
+    void PixelRayColor(Scene* scene);
 
     glm::dvec3 origin; 
     glm::dvec3 direction;
@@ -31,7 +33,7 @@ public:
     Ray* nextRay;
     ColorDBL color;
     int depth;
-    const int MAX_DEPTH = 2;
+    const int MAX_DEPTH = 10;
     const int MAX_SHADOW_RAYS = 10;
 };
 #endif // RAY_H

@@ -14,7 +14,7 @@ public:
     glm::dvec3 HemisphericalToCartesianLocalSystem(Direction* direction); // lecture 2 DONE
     glm::dvec3 CartesianLocalSystemToCartesianWorldSystem(glm::dvec3 localSystem, const glm::dvec3& surfaceNormal); // lecture 2 DONE
     Direction CartesianWorldSystemToHemispherical(glm::dvec3 worldSystem); // lecture 2
-    static Direction RandomDirectionWithBRDF(); // using Bidirectional Reflectance Distribution Function (BRDF) // lecture 3
+    static Direction RandomDirection(); // using Bidirectional Reflectance Distribution Function (BRDF) // lecture 3
 
 private:
     double azimuth = 0.0; // lecture 1

@@ -25,6 +25,10 @@ ColorDBL& ColorDBL::operator+=(const ColorDBL& other) {
     return *this;
 }
 
+ColorDBL ColorDBL::operator+(const ColorDBL& other) const {
+    return ColorDBL(r + other.r, g + other.g, b + other.b);
+}
+
 ColorDBL ColorDBL::operator*(const ColorDBL& other) const {
     return ColorDBL(r * other.r, g * other.g, b * other.b);
 }

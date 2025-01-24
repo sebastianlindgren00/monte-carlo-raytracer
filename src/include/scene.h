@@ -18,7 +18,7 @@ public:
     void renderRange(int start, int end);
     void render(int numThreads, int samplesPerPixel);
 
-    ColorDBL PixelRayColor(Ray *ray);
+    //ColorDBL PixelRayColor(Ray *ray);
 
     void saveImage(const std::string& filename);
 

@@ -8,8 +8,7 @@ glm::dvec3 Ray::pointAtSurface(double point) const {
     return origin + point * direction;
 }
 
-void Ray::traceRay(Scene* scene, int depth) {
-
+void Ray::traceRay(Scene* scene) {
     if (depth > MAX_DEPTH  || (double)rand() > 0.8) { // added a russian roulette with 20% chance of ray termination
         this->nextRay = nullptr;
         return;
@@ -31,23 +30,83 @@ void Ray::traceRay(Scene* scene, int depth) {
             }
 
             case Material::type::DIFFUSE: {
-                Direction direction = Direction::RandomDirectionWithBRDF();
+                Direction direction = Direction::RandomDirection();
                 glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
                 glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
 
                 this->nextRay = new Ray(hitPoint, worldSystem);
                 this->nextRay->previousRay = this;
-                this->nextRay->traceRay(scene, depth + 1);
+                this->nextRay->traceRay(scene);
+                break;
+            }
+
+            case Material::type::DIFFUSE_TEST: {
+
+                //std::cout << "DIFFUSE_TEST hit in traceRay" << std::endl;   
+                Direction direction = Direction::RandomDirection();
+                glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
+                glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
+
+                this->nextRay = new Ray(hitPoint, worldSystem);
+                this->nextRay->previousRay = this;
+                this->nextRay->traceRay(scene);
                 break;
             }
 
             case Material::type::MIRROR: {
                 this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)));
                 this->nextRay->previousRay = this;
-                this->nextRay->traceRay(scene, depth + 1);
+                this->nextRay->traceRay(scene);
                 break;
             }
         }   
+    }
+}
+
+void Ray::PixelRayColor(Scene* scene) {
+    ColorDBL color(0, 0, 0);
+    Light* light = &scene->light;
+
+    Ray* currentRay = this;
+    while (currentRay != nullptr) {
+        double t_min = 0.0;
+        Shape* hitShape = nullptr;
+
+        if (scene->findNearestIntersection(currentRay, hitShape, t_min)) {
+            glm::dvec3 hitPoint = currentRay->pointAtSurface(t_min) - 0.001 * currentRay->direction;
+            glm::dvec3 normal = hitShape->getNormal(hitPoint);
+
+            switch (hitShape->getMaterial().getMaterialType()) {
+                case Material::type::LIGHT: {
+                    currentRay->color = hitShape->getMaterial().getColor();
+                    break;
+                }
+
+                case Material::type::DIFFUSE: {
+                    ColorDBL diffuseColor = currentRay->computeIrradiance(scene, hitPoint, hitShape, light);
+                    std::cout << "diffuseColor: " << diffuseColor.r << " " << diffuseColor.g << " " << diffuseColor.b << std::endl; 
+                    double distanceFactor = glm::length(hitPoint - light->randomPointOnLight());
+                    if(currentRay->previousRay != nullptr){
+                        currentRay->color +=  diffuseColor * (1.0 / distanceFactor) * (hitShape->getMaterial().color + currentRay->previousRay->color);
+                    } else {
+                        currentRay->color += diffuseColor * (5.0 / distanceFactor) * hitShape->getMaterial().color;
+                    }
+                    break;
+                }
+
+                case Material::type::MIRROR: {
+                    Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(currentRay->direction, normal)));
+                    reflectedRay.traceRay(scene);
+                    reflectedRay.PixelRayColor(scene);
+                    currentRay->color += reflectedRay.color;
+                    break;
+                }
+            }
+        } else {
+            currentRay->color = color;
+        }
+
+        currentRay = currentRay->nextRay;
     }
 }
 

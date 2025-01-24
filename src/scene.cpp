@@ -49,9 +49,11 @@ void Scene::render(int numThreads, int samplesPerPixel) {
                 ColorDBL color(0, 0, 0);
                 for (int s = 0; s < samplesPerPixel; s++) {
                     Ray* ray = camera.getRay(i, j);
-                    ray->traceRay(this, 0);
-                    color += PixelRayColor(ray);
-                    delete ray;
+                    ray->traceRay(this);
+                    // color += PixelRayColor(ray);
+                    // delete ray;
+                    ray->PixelRayColor(this);
+                    color += ray->color;
                 }
                 color /= samplesPerPixel;
                 modifyLocalPixels(j * camera.width + i, color);
@@ -108,44 +110,45 @@ bool Scene::findNearestIntersection(Ray* ray, Shape*& hitShape, double& t_min) c
 
 
 
-ColorDBL Scene::PixelRayColor(Ray* ray) {
-    ColorDBL color(0, 0, 0);
+// ColorDBL Scene::PixelRayColor(Ray* ray) {
+//     ColorDBL color(0, 0, 0);
 
-    while (ray != nullptr) {
-        double t_min = 0.0;
-        Shape* hitShape = nullptr;
+//     while (ray != nullptr) {
+//         double t_min = 0.0;
+//         Shape* hitShape = nullptr;
 
-        if (findNearestIntersection(ray, hitShape, t_min)) {
-            glm::dvec3 hitPoint = ray->pointAtSurface(t_min) - 0.001 * ray->direction;
-            glm::dvec3 normal = hitShape->getNormal(hitPoint);
+//         if (findNearestIntersection(ray, hitShape, t_min)) {
+//             glm::dvec3 hitPoint = ray->pointAtSurface(t_min) - 0.001 * ray->direction;
+//             glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
-            switch (hitShape->getMaterial().getMaterialType()) {
-                case Material::type::LIGHT: {
-                    return hitShape->getMaterial().getColor();
-                }
+//             switch (hitShape->getMaterial().getMaterialType()) {
+//                 case Material::type::LIGHT: {
+//                     return hitShape->getMaterial().getColor();
+//                 }
 
-                case Material::type::DIFFUSE: {
-                    ColorDBL diffuseColor = ray->computeIrradiance(this, hitPoint, hitShape, &light);
-                    color += diffuseColor;
-                    break;
-                }
+//                 case Material::type::DIFFUSE: {
+                    
+//                     ColorDBL diffuseColor = ray->computeIrradiance(this, hitPoint, hitShape, &light);
+//                     color += diffuseColor;
+//                     break;
+//                 }
 
-                case Material::type::MIRROR: {
-                    Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(ray->direction, normal)));
-                    reflectedRay.traceRay(this, 0);
-                    color += PixelRayColor(&reflectedRay);
-                    break;
-                }
-            }
-        } else {
-            return color;
-        }
+//                 case Material::type::MIRROR: {
+//                     Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(ray->direction, normal)));
+//                     reflectedRay.traceRay(this, 0);
+//                     color += PixelRayColor(&reflectedRay);
+//                     break;
+//                 }
+//             }
+//         } else {
+//             return color;
+//         }
 
-        ray = ray->previousRay;
-    }
+//         ray = ray->previousRay;
+//     }
 
-    return color;
-}
+//     return color;
+// }
 
 void Scene::saveImage(const std::string& filename) {
     std::ofstream file(filename, std::ios::binary);
