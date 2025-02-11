@@ -1,21 +1,23 @@
-#include "include/camera.h"
+#include "camera.h"
+#include "ray.h"
+#include <glm/gtc/constants.hpp>
 
 Camera::Camera(int width, int height)
-        : startPosition(glm::dvec3(-1.0f, 0.0f, 0.0f)), 
-          direction(glm::normalize(glm::dvec3(1.0f, 0.0f, 0.0f))),
-          c1(glm::dvec3(0.0f, -1.0f, -1.0f)),
-          c2(glm::dvec3(0.0f, 1.0f, -1.0f)),
-          c3(glm::dvec3(0.0f, 1.0f, 1.0f)),
-          c4(glm::dvec3(0.0f, -1.0f, 1.0f)),
-          width(width), height(height) {
-        this->pixelSize = 2.0 / height;
+    : startPosition(glm::dvec3(-1.0, 0.0, 0.0)),
+      direction(glm::normalize(glm::dvec3(1.0, 0.0, 0.0))),
+      c1(glm::dvec3(0.0, -1.0, -1.0)),
+      c2(glm::dvec3(0.0, 1.0, -1.0)),
+      c3(glm::dvec3(0.0, 1.0, 1.0)),
+      c4(glm::dvec3(0.0, -1.0, 1.0)),
+      width(width), height(height)
+{
+    this->pixelSize = 2.0 / height;
 }
 
 Ray* Camera::getRay(int i, int j) {
-        double x = i * pixelSize - (1.0 - pixelSize); // see lecture 4
-        double y = (height - j) * pixelSize - (1.0 - pixelSize); // had to go to -j to flip it 
-
-        glm::dvec3 pixelPosition = glm::dvec3(0.0, x, y);
-        glm::dvec3 rayDirection = pixelPosition - startPosition; // random offset for anti aliasing
-        return new Ray(startPosition, rayDirection);
+    double x = i * pixelSize - (1.0 - pixelSize);
+    double y = (height - j) * pixelSize - (1.0 - pixelSize);
+    glm::dvec3 pixelPosition = glm::dvec3(0.0, x, y);
+    glm::dvec3 rayDirection = pixelPosition - startPosition;
+    return new Ray(startPosition, rayDirection);
 }

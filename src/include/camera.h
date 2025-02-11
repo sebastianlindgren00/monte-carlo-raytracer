@@ -1,4 +1,7 @@
-#include "include/ray.h"    
+#ifndef CAMERA_H
+#define CAMERA_H
+
+#include "ray.h"
 #include <glm/vec3.hpp>
 
 class Camera {
@@ -13,3 +16,5 @@ public:
     double pixelSize;
     glm::dvec3 c1, c2, c3, c4;
 };
+
+#endif // CAMERA_H

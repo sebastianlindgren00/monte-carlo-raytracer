@@ -1,20 +1,32 @@
-#include "include/ray.h"
-#include "include/scene.h"
-#include "include/shape.h"
+#include "ray.h"
+#include "scene.h"
+#include "shape.h"
+#include "light.h"
+#include <glm/gtc/epsilon.hpp>
+#include <glm/gtc/constants.hpp>
 
-Ray::Ray(const glm::dvec3& origin, const glm::dvec3& direction) : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr) {}
+Ray::Ray(const glm::dvec3& origin, const glm::dvec3& direction, int depth)
+    : origin(origin), direction(direction), nextRay(nullptr), previousRay(nullptr), depth(depth) {}
 
 glm::dvec3 Ray::pointAtSurface(double point) const {
     return origin + point * direction;
 }
 
+void Ray::releaseRayChain() {
+    if (nextRay != nullptr) {
+        nextRay->releaseRayChain();
+        delete nextRay;
+        nextRay = nullptr;
+    }
+}
+
 void Ray::traceRay(Scene* scene) {
-    if (depth > MAX_DEPTH  || (double)rand() > 0.8) { // added a russian roulette with 20% chance of ray termination
+    // russian roulette and depth check
+    if (depth > MAX_DEPTH || ((double)rand() / RAND_MAX) > 0.75) {
         this->nextRay = nullptr;
         return;
     }
 
-    ColorDBL color(0, 0, 0);
     double t_min = 0.0;
     Shape* hitShape = nullptr;
 
@@ -22,117 +34,138 @@ void Ray::traceRay(Scene* scene) {
         glm::dvec3 hitPoint = pointAtSurface(t_min) - 0.001 * direction;
         glm::dvec3 normal = hitShape->getNormal(hitPoint);
 
-
         switch(hitShape->getMaterial().getMaterialType()){
             case Material::type::LIGHT: {
-                // ray dies instantly
+                // When a ray hits the light, we stop tracing further bounces.
                 return;
             }
-
             case Material::type::DIFFUSE: {
-                Direction direction = Direction::RandomDirection();
-                glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
-                glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
+                Direction newDir = Direction::RandomDirection();
+                glm::dvec3 localSystem = newDir.HemisphericalToCartesianLocalSystem(&newDir);
+                glm::dvec3 worldSystem = newDir.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
 
-                this->nextRay = new Ray(hitPoint, worldSystem);
+                this->nextRay = new Ray(hitPoint, worldSystem, this->depth + 1);
                 this->nextRay->previousRay = this;
                 this->nextRay->traceRay(scene);
                 break;
             }
-
-            case Material::type::DIFFUSE_TEST: {
-
-                //std::cout << "DIFFUSE_TEST hit in traceRay" << std::endl;   
-                Direction direction = Direction::RandomDirection();
-                glm::dvec3 localSystem = direction.HemisphericalToCartesianLocalSystem(&direction);
-                glm::dvec3 worldSystem = direction.CartesianLocalSystemToCartesianWorldSystem(localSystem, normal);
-
-                this->nextRay = new Ray(hitPoint, worldSystem);
-                this->nextRay->previousRay = this;
-                this->nextRay->traceRay(scene);
-                break;
-            }
-
             case Material::type::MIRROR: {
-                this->nextRay = new Ray(hitPoint, glm::normalize(glm::reflect(this->direction, normal)));
+                glm::dvec3 reflectDir = glm::normalize(glm::reflect(this->direction, normal));
+                this->nextRay = new Ray(hitPoint, reflectDir, this->depth + 1);
                 this->nextRay->previousRay = this;
                 this->nextRay->traceRay(scene);
                 break;
             }
-        }   
+            default:
+                break;
+        }
     }
 }
 
 void Ray::PixelRayColor(Scene* scene) {
-    ColorDBL color(0, 0, 0);
-    Light* light = &scene->light;
+    Ray* lastRay = this;
+    while (lastRay->nextRay != nullptr) {
+        lastRay = lastRay->nextRay;
+    }
 
-    Ray* currentRay = this;
-    while (currentRay != nullptr) {
+    // start at the end
+    {
         double t_min = 0.0;
         Shape* hitShape = nullptr;
-
-        if (scene->findNearestIntersection(currentRay, hitShape, t_min)) {
-            glm::dvec3 hitPoint = currentRay->pointAtSurface(t_min) - 0.001 * currentRay->direction;
-            glm::dvec3 normal = hitShape->getNormal(hitPoint);
-
+        if (scene->findNearestIntersection(lastRay, hitShape, t_min)) {
+            glm::dvec3 hitPoint = lastRay->pointAtSurface(t_min) - 0.001 * lastRay->direction;
             switch (hitShape->getMaterial().getMaterialType()) {
-                case Material::type::LIGHT: {
-                    currentRay->color = hitShape->getMaterial().getColor();
+                case Material::type::LIGHT:
+                    lastRay->color = hitShape->getMaterial().getColor();
                     break;
-                }
-
-                case Material::type::DIFFUSE: {
-                    ColorDBL diffuseColor = currentRay->computeIrradiance(scene, hitPoint, hitShape, light);
-                    std::cout << "diffuseColor: " << diffuseColor.r << " " << diffuseColor.g << " " << diffuseColor.b << std::endl; 
-                    double distanceFactor = glm::length(hitPoint - light->randomPointOnLight());
-                    if(currentRay->previousRay != nullptr){
-                        currentRay->color +=  diffuseColor * (1.0 / distanceFactor) * (hitShape->getMaterial().color + currentRay->previousRay->color);
-                    } else {
-                        currentRay->color += diffuseColor * (5.0 / distanceFactor) * hitShape->getMaterial().color;
-                    }
+                case Material::type::DIFFUSE:
+                    lastRay->color = lastRay->computeDiffuseRadiance(scene, hitPoint, hitShape, &scene->light);
                     break;
-                }
-
-                case Material::type::MIRROR: {
-                    Ray reflectedRay(hitPoint, glm::normalize(glm::reflect(currentRay->direction, normal)));
-                    reflectedRay.traceRay(scene);
-                    reflectedRay.PixelRayColor(scene);
-                    currentRay->color += reflectedRay.color;
+                case Material::type::MIRROR:
+                    lastRay->color = ColorDBL(0, 0, 0);
                     break;
-                }
+                default:
+                    lastRay->color = ColorDBL(0, 0, 0);
+                    break;
             }
         } else {
-            currentRay->color = color;
+            // nothing at end
+            lastRay->color = ColorDBL(0, 0, 0);
         }
-
-        currentRay = currentRay->nextRay;
     }
+
+    // start at the end and go back
+    Ray* currentRay = lastRay;
+    while (currentRay->previousRay != nullptr) {
+        Ray* prevRay = currentRay->previousRay;
+        double t_min = 0.0;
+        Shape* hitShape = nullptr;
+        if (scene->findNearestIntersection(prevRay, hitShape, t_min)) {
+            glm::dvec3 hitPoint = prevRay->pointAtSurface(t_min) - 0.001 * prevRay->direction;
+            switch (hitShape->getMaterial().getMaterialType()) {
+                case Material::type::LIGHT:
+                    prevRay->color = hitShape->getMaterial().getColor();
+                    break;
+                case Material::type::DIFFUSE: {
+                    ColorDBL diffuseRadiance = prevRay->computeDiffuseRadiance(scene, hitPoint, hitShape, &scene->light);
+                    prevRay->color = diffuseRadiance + (hitShape->getMaterial().getColor() * currentRay->color);
+                    break;
+                }
+                case Material::type::MIRROR:
+                    // return last
+                    prevRay->color = currentRay->color;
+                    break;
+                default:
+                    prevRay->color = currentRay->color;
+                    break;
+            }
+        } else {
+            prevRay->color = currentRay->color; // i think this was the problem?
+        }
+        currentRay = prevRay;
+    }
+
+    this->color = currentRay->color;
+    this->releaseRayChain(); // free up space
 }
 
-ColorDBL Ray::computeIrradiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const {
-    
-    ColorDBL irradiance = ColorDBL(0.0, 0.0, 0.0);
-    
-    //for(int i = 0; i < MAX_SHADOW_RAYS; i++){
+ColorDBL Ray::computeDiffuseRadiance(Scene* scene, const glm::dvec3& hitPoint, Shape* hitShape, Light* light) const {
+    glm::dvec3 normal = hitShape->getNormal(hitPoint);
+    const double EPSILON = 0.001;
+
+    glm::dvec3 offsetHitPoint = hitPoint + normal * EPSILON;
+
     double u = Light::random_double();
     double v = Light::random_double();
-    glm::dvec3 pointOnLight = light->topLeft + u * (light->topRight - light->topLeft) + v * (light->bottomLeft - light->topLeft);
+    glm::dvec3 pointOnLight = light->topLeft 
+    + u * (light->topRight - light->topLeft)
+    + v * (light->bottomLeft - light->topLeft);
 
-    double distance = glm::distance(hitPoint, pointOnLight);
-    double area = glm::length(glm::cross(light->topRight - light->topLeft, light->bottomLeft - light->topLeft));
-    double cos_omega_x = glm::clamp(glm::dot(hitShape->getNormal(hitPoint), glm::normalize(pointOnLight - hitPoint)), 0.0, (double)INFINITY);
-    double cos_omega_y = -1.0 * glm::dot(light->plane->getNormal(), glm::normalize(pointOnLight - hitPoint));
+    glm::dvec3 toLight = pointOnLight - offsetHitPoint;
+    double distanceSq = glm::dot(toLight, toLight);
+    glm::dvec3 L = glm::normalize(toLight);
 
-    if(cos_omega_y < 0.0) { cos_omega_y = 0.0; }
-    double G = cos_omega_x * cos_omega_y / (distance * distance);
-    double E = area * G * light->WATT / M_PI;
+    double cosThetaSurface = glm::dot(normal, L);
+ 
+    cosThetaSurface = glm::clamp(cosThetaSurface, 0.0, 1.0);
 
-    double shadowFactor = isShadowed(scene, hitPoint, pointOnLight, light);
+    double cosThetaLight = glm::max(-glm::dot(light->plane->getNormal(), L), 0.0);
 
-    ColorDBL color = hitShape->getMaterial().color;
-    return irradiance += color * E * shadowFactor;
-    //}
+    double G = (cosThetaSurface * cosThetaLight) / distanceSq;
+
+    glm::dvec3 edge1 = light->topRight - light->topLeft;
+    glm::dvec3 edge2 = light->bottomLeft - light->topLeft;
+    double area = glm::length(glm::cross(edge1, edge2));
+
+    double E_inc = area * G * light->WATT;
+
+    double shadowFactor = isShadowed(scene, offsetHitPoint, pointOnLight, light);
+
+    ColorDBL albedo = hitShape->getMaterial().getColor();
+
+    ColorDBL diffuseRadiance = (albedo / M_PI) * (E_inc * shadowFactor);
+
+    return diffuseRadiance;
 }
 
 double Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec3& pointOnLight, Light* light) const {
@@ -143,7 +176,7 @@ double Ray::isShadowed(Scene* scene, const glm::dvec3& hitPoint, const glm::dvec
     
     if(scene->findNearestIntersection(&shadowRay, hitShape, t_min)) {
         if (hitShape != nullptr && hitShape->getMaterial().getMaterialType() != Material::type::LIGHT) {
-            return 0.0; // Make sure the shadow ray doesn't register the light source as intersection
+            return 0.0; 
         }        
     }
 

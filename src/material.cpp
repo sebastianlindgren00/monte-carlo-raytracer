@@ -1,4 +1,4 @@
-#include "include/material.h"
+#include "material.h"
 
 Material::Material(ColorDBL color, type MaterialType) : color(color), materialType(MaterialType) {}
 

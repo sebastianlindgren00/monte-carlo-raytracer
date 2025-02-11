@@ -1,11 +1,11 @@
-#include "include/scene.h"
+#include "scene.h"
 #include <fstream>
 #include <filesystem>
 namespace fs = std::filesystem;
 
 int main () {
     int numThreads = std::thread::hardware_concurrency();
-    int samplesPerPixel = 12;
+    int samplesPerPixel = 5;
 
     Scene scene;
     scene.render(numThreads, samplesPerPixel);

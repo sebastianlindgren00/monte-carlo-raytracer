@@ -6,9 +6,8 @@
 
 class ColorDBL {
 public:
-    ColorDBL(double r = 0.0, double g = 0, double b = 0);
+    ColorDBL(double r = 0.0, double g = 0.0, double b = 0.0);
 
-    // Constructor accepting glm::dvec3
     ColorDBL(const glm::dvec3& color);
 
     static ColorDBL red();
@@ -20,12 +19,14 @@ public:
     glm::dvec3 toRGB() const;
 
     ColorDBL& operator+=(const ColorDBL& other);
-    ColorDBL operator*(const ColorDBL& other) const;
     ColorDBL operator+(const ColorDBL& other) const;
-    // double * ColorDBL
+    ColorDBL operator*(const ColorDBL& other) const;
     ColorDBL operator*(double scalar) const;
-    ColorDBL operator/(const ColorDBL& other) const;
-    ColorDBL& operator/=(double scalar);
+    friend ColorDBL operator*(double scalar, const ColorDBL &color);
+    ColorDBL operator/(const ColorDBL &other) const;
+    ColorDBL operator/(double scalar) const;
+    ColorDBL &operator/=(double scalar);
+
     double r, g, b;
 };
 
